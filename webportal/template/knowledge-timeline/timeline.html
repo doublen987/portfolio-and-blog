@@ -1,0 +1,21 @@
+<%: func HandleKnowledgeTimeline(timeline []models.TimelineEvent, w io.Writer)%>
+<%~ "index.html" %>
+<%@ body { %>
+    <div class="timeline-container">
+        <div class="timeline-line"></div>
+        <% for id, event := range timeline {%>
+            <div id="timeline-event-<%=i id%>" class="timeline-event">
+                <div class="timeline-event-image">
+                    <% if event.Image != "" {%>
+                        <img class="project-image" src="/content/images/<%=s event.Image %>"/>
+                    <% } else { %>
+                        <img class="project-image" src="/content/no-image.png"/>
+                    <% } %>
+                </div>
+                <div class="timeline-event-title"><%=s event.Title%></div>
+                <div class="timeline-event-description"><%=s event.Description%></div>
+            </div>
+        <% } %>
+    </div>
+    <script src="/content/js/timeline.js"></script>
+<%}%> 

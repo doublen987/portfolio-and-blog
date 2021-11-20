@@ -1,0 +1,26 @@
+<%: func HandleLogin(message string, w io.Writer) %>
+<%~ "index.html" %>
+<%@ body { %> 
+<div class="form-container">
+    <form action="/login" method="POST">
+        <div>
+            <div class="login-message">
+                <%=s message %>
+            </div>
+            <div class="input-container">
+                <label class="input-label" for="username">Username</label>
+                <input class="login-input" id="username" name="username" type="text"/>
+            </div>
+            
+            <div class="input-container">
+                <label class="input-label" for="password">Password</label>
+                <input class="login-input" id="password" name="password" type="password"/>
+            </div>
+            <div class="submit-container">
+                <button class="login-submit" type="submit">Login</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<% } %>

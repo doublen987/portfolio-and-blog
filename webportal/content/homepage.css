@@ -1,0 +1,23 @@
+.homepage-heading {
+    color: #fbc23f;
+    font-family: "Bangers", "cursive";
+    font-size: 70px;
+    text-shadow: 4px 4px 0 #33112b;
+}
+
+.homepage-content {
+    color: #d08a12;
+    font-family: "Bangers", "cursive";
+    font-size: 30px;
+}
+
+.homepage-qualifications {
+    color: #d08a12;
+    font-family: "Bangers", "cursive";
+    font-size: 30px;
+}
+
+.homepage-container {
+    padding-left: 10%;
+    padding-right: 10%;
+}

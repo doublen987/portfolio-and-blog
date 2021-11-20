@@ -1,0 +1,17 @@
+<%: func HandleBlog(posts []models.Post, w io.Writer) %>
+<%~ "index.html" %>
+<%@ body { %>
+    <div class="posts-container">
+        <% for _, post := range posts { %>
+            <div class="post-card">
+                <% if post.Thumbnail != "" {%>
+                    <img class="post-image" src="/content/images/<%=s post.Thumbnail %>"/>
+                <% } else { %>
+                    <img class="post-image" src="/content/no-image.png"/>
+                <% } %>
+                <a href="/blog/<%=s post.ID %>" class="post-card-title"><%==s post.Title %></a>
+                <div class="post-card-description"><%==s post.Description %></div>
+            </div>
+        <% } %> 
+    </div>
+<% } %>

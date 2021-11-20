@@ -1,0 +1,63 @@
+.timeline-event {
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
+    text-align: center;
+    margin-bottom: 20px;
+    opacity: 0;
+}
+
+.timeline-container {
+    position: relative;
+    width: 100%;
+    text-align: center;
+}
+
+.timeline-event-image img{
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
+
+.timeline-line {
+    transform: translate(-50%, 0);
+    left: 50%;
+    width: 10px;
+    height: calc(100% - 100px);
+    background-color: #2A0E23;
+    position: absolute;
+}
+
+.timeline-event-title {
+    color: #d08a12;
+    font-family: "Bangers", "cursive";
+    font-size: 30px;
+}
+
+.timeline-event-description {
+    color: #d08a12;
+    font-family: "Bangers", "cursive";
+    font-size: 15px;
+    margin-left: 30%;
+    margin-right: 30%;
+}
+
+.event-visible {
+    animation: 2s forwards ease-in timeline-event-animation-visible;
+    opacity: 1;
+}
+
+.event-not-visible {
+    animation: 2s forwards ease-in timeline-event-animation-not-visible;
+    opacity: 0;
+}   
+
+@keyframes timeline-event-animation-visible {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes timeline-event-animation-not-visible {
+    from {opacity: 1;}
+    to {opacity: 0;}
+}

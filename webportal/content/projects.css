@@ -1,0 +1,31 @@
+.project-card{
+    display: inline-block;
+    background-color: #33112b;
+    width: 300px;
+    height: 300px;
+    overflow-y: hidden;
+}
+
+.project-title{
+    color: #fbc23f;
+    font-family: "Bangers", "cursive";
+    font-size: 20px;
+    text-shadow: 2px 2px 0 #26021d;
+}
+
+.project-content{
+    color: #d08a12;
+    font-family: "Bangers", "cursive";
+    font-size: 14px;
+    text-shadow: 2px 2px 0 #26021d;
+}
+
+.project-image{
+    max-height: 200px;
+    width: auto;
+}
+
+.card-containter{
+    text-align: center;
+    width: 100%;
+}

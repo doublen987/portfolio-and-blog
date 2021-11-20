@@ -1,0 +1,55 @@
+.editor-input {
+    width: 300px;
+}
+
+.editor-label {
+    width: 120px;
+    text-align: right;
+    display: inline-block;
+    color: #fbc23f;
+}
+
+.editor-container {
+    /* padding: 0 100px 0 100px; */
+    width: 600px;
+    margin: auto;
+}
+
+.label-container {
+    margin: auto;
+    margin-bottom: 30px;
+}
+
+.text {
+    margin-left: 40px;
+    text-align: left;
+    display: inline-block;
+    color: #fbc23f;
+}
+
+.submit-hidden {
+    visibility: hidden;
+}
+
+.submit-visible {
+    visibility: visible;
+}
+
+.submit-btn {
+    color: #d08a12;
+    font-family: "Bangers", "cursive";
+    font-size: 20px;
+    text-shadow: 2px 2px 0 #26021d;
+    background-color: #26021d;
+    vertical-align: middle;
+    text-align: center;
+    width: 70px;
+    height: 30px;
+    margin: auto;
+}
+
+.submit-container {
+    margin-top: 20px;
+    width: 100%;
+    text-align: center;
+}

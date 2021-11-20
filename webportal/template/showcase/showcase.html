@@ -1,0 +1,18 @@
+<%: func HandleShowcase(projects []models.Project, w io.Writer) %>
+<%~ "index.html" %>
+<%@ body { %>
+    <div class="card-containter">
+        <% for _, project := range projects { %>
+            <div class="project-card">
+                <% if project.Thumbnail != "" {%>
+                    <img class="project-image" src="/content/images/<%=s project.Thumbnail %>"/>
+                <% } else { %>
+                    <img class="project-image" src="/content/no-image.png"/>
+                <% } %>
+                <div class="project-title"><%=s project.Title %></div>
+                <div class="project-content"><%=s project.Description %></div>
+            </div>
+            
+        <% } %> 
+    </div>
+<% } %>

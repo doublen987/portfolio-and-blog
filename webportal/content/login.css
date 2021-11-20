@@ -1,0 +1,43 @@
+.form-container{
+    text-align: center;
+}
+
+.login-input{
+    width: 200px;
+    height: 30px;
+    margin-left: 10px;
+    border: 2px solid #26021d;
+    background-color: #991f7d;
+    color: #d08a12;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+}
+
+.login-input:hover{
+    border: 2px solid #d08a12;
+}
+
+.input-label{
+    color: #d08a12;
+    font-family: "Bangers", "cursive";
+    font-size: 30px;
+    text-shadow: 2px 2px 0 #26021d;
+    vertical-align: middle;
+}
+
+.input-container{
+    margin: auto;
+    margin-bottom: 30px;
+}
+
+.login-submit{
+    color: #d08a12;
+    font-family: "Bangers", "cursive";
+    font-size: 20px;
+    text-shadow: 2px 2px 0 #26021d;
+    background-color: #26021d;
+    vertical-align: middle;
+    text-align: center;
+    width: 70px;
+    height: 30px;
+}
