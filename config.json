@@ -3,6 +3,6 @@
     "port": "8181",
     "databasetype": 3,
     "filestoragetype": "s3",
-    "dbconnection": "mongodb://127.0.0.1",
+    "dbconnection": "mongodb://127.0.0.1:27017",
     "frontend": "./webportal/template"
 }

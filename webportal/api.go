@@ -524,42 +524,6 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 	})))
 
 	r.PathPrefix("/projects").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		//posts, err := db.GetPosts()
-		//var projects []models.Project
-		// projects = []models.Project{
-		// 	models.Project{
-		// 		Title:       "Bookings app",
-		// 		Description: "An app where you can book shit",
-		// 	},
-		// 	models.Project{
-		// 		Title:       "Animator",
-		// 		Description: "An app where you can animate shit",
-		// 	},
-		// 	models.Project{
-		// 		Title:       "Social network",
-		// 		Description: "A social network that helps you connect with other creators, share your work and make money doing it.",
-		// 	},
-		// 	models.Project{
-		// 		Title:       "Discord clone",
-		// 		Description: "An alternative to the trainwreck that is Discord.",
-		// 	},
-		// 	models.Project{
-		// 		Title:       "Video player",
-		// 		Description: "Web based video player",
-		// 	},
-		// 	models.Project{
-		// 		Title:       "Game engine",
-		// 		Description: "Game engine for creating 2d video games",
-		// 	},
-		// 	models.Project{
-		// 		Title:       "Bookings app",
-		// 		Description: "An app where you can book shit",
-		// 	},
-		// 	models.Project{
-		// 		Title:       "Animator",
-		// 		Description: "An app where you can animate shit",
-		// 	},
-		// }
 
 		ctx := req.Context()
 		projects, err := db.GetProjects(ctx)

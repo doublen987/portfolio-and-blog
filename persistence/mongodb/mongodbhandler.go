@@ -270,7 +270,7 @@ func (handler *MongodbHandler) UpdateProject(ctx context.Context, project models
 			Thumbnail:   project.Thumbnail,
 		}
 
-		_, err = s.Database("MojSajt").Collection("posts").UpdateOne(ctx, bson.D{{"_id", updatedProject.ID}}, updatedProject)
+		_, err = s.Database("MojSajt").Collection("projects").ReplaceOne(ctx, bson.D{{"_id", updatedProject.ID}}, updatedProject)
 		return project, err
 	} else {
 		return models.Project{}, ErrInvalidPostId
