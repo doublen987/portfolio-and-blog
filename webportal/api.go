@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	//"encoding/json"
 
@@ -603,9 +604,29 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "image")
+
+		s := strings.Split(vars["imageID"], ".")
+		if len(s) < 1 {
+			http.Error(w, "Invalid file name", http.StatusNotFound)
+			return
+		}
+
+		fileextension := s[len(s)-1]
+
+		fmt.Println(fileextension)
+
+		switch fileextension {
+		case "svg":
+			fmt.Println(fileextension)
+			w.Header().Set("content-type", "image/svg+xml")
+			break
+		default:
+			fmt.Println(fileextension)
+			w.Header().Set("content-type", "image")
+		}
+
 		w.Write(imageBytes)
+		w.WriteHeader(http.StatusOK)
 	})))
 	r.PathPrefix("/content/images").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		//vars := mux.Vars(req)

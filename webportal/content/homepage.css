@@ -21,3 +21,32 @@
     padding-left: 10%;
     padding-right: 10%;
 }
+
+.homepage-stack {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.icon-container-label {
+    color: #d08a12;
+    font-family: "Bangers", "cursive";
+    font-size: 30px;
+    display: inline-block;
+    
+}
+
+.icon-container {
+    margin-left: 10px;
+}
+
+.icon-list {
+    display: inline-flex;
+    align-items: flex-start;
+}
+
+.tech-icon {
+    width: 50px;
+    height: 50px;
+}
