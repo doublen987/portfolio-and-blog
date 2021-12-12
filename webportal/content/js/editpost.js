@@ -112,6 +112,8 @@ function initTinyMCE() {
                     document.getElementById("post-thumbnail-image").src = "/content/no-image.png";
                     document.getElementById("post-thumbnail-name").value = "";
                     document.getElementById("post-publish-date").innerHTML = "";
+                    document.getElementById("post-hidden").value = "False";
+                    document.getElementById("post-published").value = "False";
                     var publish = document.getElementById("submit-publish");
                     publish.classList.remove("submit-visible")
                     publish.classList.add("submit-hidden")
@@ -121,18 +123,25 @@ function initTinyMCE() {
                 var title = document.getElementById("title-" + select.value).innerHTML;
                 var description = document.getElementById("description-" + select.value).innerHTML;
                 var thumbnail = document.getElementById("thumbnail-" + select.value).innerHTML;
-                var timestamp = document.getElementById("timestamp-" + select.value).innerHTML;
-                //console.log(stuff)
+                var publishtimestamp = document.getElementById("publishtimestamp-" + select.value).innerHTML;
+                var lastedittimestamp = document.getElementById("lastedittimestamp-" + select.value).innerHTML;
+                var hidden = document.getElementById('hidden-' + select.value).innerHTML;
+                var published = document.getElementById('published-' + select.value).innerHTML;
+                
                 //console.log(decodeURI(stuff))
                 console.log(he.decode(content))
                 console.log(title);
                 console.log(description);
-                console.log(timestamp)
+                console.log(published)
+                console.log(publishtimestamp)
                 editor.setContent(he.decode(content));
                 document.getElementById("post-title").value = title;
                 document.getElementById("post-description").value = description;
-                document.getElementById("post-publish-date").innerHTML = timestamp;
+                document.getElementById("post-publish-date").innerHTML = publishtimestamp;
+                document.getElementById("post-last-edit-date").innerHTML = lastedittimestamp;
                 document.getElementById("post-thumbnail-name").value = thumbnail;
+                document.getElementById("post-hidden").value = hidden;
+                document.getElementById("post-published").innerHTML = published;
                 var thumbnailImg = document.getElementById("post-thumbnail-image");
                 console.log("bla")
                 thumbnailImg.src = "/content/images/" + thumbnail;

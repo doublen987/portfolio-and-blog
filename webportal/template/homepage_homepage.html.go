@@ -20,8 +20,10 @@ func Homepage(header, message string, w io.Writer) {
     <title>doublen987</title>
     <link rel="icon" href="/content/doublen987-logo-5.svg">
     <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@500;600&family=Voces&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/content/shared.css">
     <link rel="stylesheet" href="/content/homepage.css">
     <link rel="stylesheet" href="/content/projects.css">

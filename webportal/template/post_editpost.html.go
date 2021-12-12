@@ -21,8 +21,10 @@ func HandleEditPost(posts []models.Post, w io.Writer) {
     <title>doublen987</title>
     <link rel="icon" href="/content/doublen987-logo-5.svg">
     <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@500;600&family=Voces&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/content/shared.css">
     <link rel="stylesheet" href="/content/homepage.css">
     <link rel="stylesheet" href="/content/projects.css">
@@ -126,12 +128,26 @@ func HandleEditPost(posts []models.Post, w io.Writer) {
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(post.Thumbnail, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="timestamp-`)
+                    <div id="publishtimestamp-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
-		hero.EscapeHTML(post.Timestamp, _buffer)
+		hero.EscapeHTML(post.PublishTimestamp, _buffer)
 		_buffer.WriteString(`</div>
-                    
+                    <div id="lastedittimestamp-`)
+		hero.EscapeHTML(post.ID, _buffer)
+		_buffer.WriteString(`" style="display:none;">`)
+		hero.EscapeHTML(post.LastEditTimestamp, _buffer)
+		_buffer.WriteString(`</div>
+                    <div id="hidden-`)
+		hero.EscapeHTML(post.ID, _buffer)
+		_buffer.WriteString(`" style="display:none;">`)
+		hero.FormatBool(post.Hidden, _buffer)
+		_buffer.WriteString(`</div>
+                    <div id="published-`)
+		hero.EscapeHTML(post.ID, _buffer)
+		_buffer.WriteString(`" style="display:none;">`)
+		hero.FormatBool(post.Published, _buffer)
+		_buffer.WriteString(`</div>
                 `)
 	}
 	_buffer.WriteString(`
@@ -152,13 +168,20 @@ func HandleEditPost(posts []models.Post, w io.Writer) {
                 <img id="post-thumbnail-image" src="/content/no-image.png">
             </div>
             <div class="label-container">
-                <div class="editor-label">Published: </div><div class="text">False</div>
+                <div class="editor-label">Hidden: </div>
+                <select name="Hidden" id="post-hidden" class="text" >
+                    <option id="post-hidden-option-true" value="true">True</option>
+                    <option id="post-hidden-option-false" value="false">False</option>
+                </select>
+            </div>
+            <div class="label-container">
+                <div class="editor-label">Published: </div><div id="post-published" class="text"></div>
             </div>
             <div class="label-container">
                 <div class="editor-label">Date Published: </div><div id="post-publish-date" class="text"></div>
             </div>
             <div class="label-container">
-                <div class="editor-label">Last Modified </div><div class="text"></div>
+                <div class="editor-label">Last Modified: </div><div id="post-last-edit-date" class="text"></div>
             </div>
             <div>
                 <textarea name="Content" id="post-content"></textarea>

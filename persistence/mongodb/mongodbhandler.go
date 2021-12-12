@@ -20,13 +20,17 @@ var (
 )
 
 type MongoPost struct {
-	ID          primitive.ObjectID `bson:"_id", json:"ID"`
-	Title       string             `bson: "title,omitempty", json:"title"`
-	Content     string             `bson: "content,omitempty", json:"content"`
-	Description string             `bson: "description,omitempty", json:"description"`
-	Thumbnail   string             `bson: "thumbnail,omitempty, json: "thumbnail"`
-	Timestamp   time.Time          `bson:"timestamp", json:"timestamp"`
-	Tags        []string           `bson:"tags", json:"tags"`
+	ID                primitive.ObjectID `bson:"_id", json:"ID"`
+	Title             string             `bson: "title,omitempty", json:"title"`
+	Content           string             `bson: "content,omitempty", json:"content"`
+	Description       string             `bson: "description,omitempty", json:"description"`
+	Thumbnail         string             `bson: "thumbnail,omitempty, json: "thumbnail"`
+	PublishTimestamp  time.Time          `bson:"publishtimestamp", json:"publishtimestamp"`
+	LastEditTimestamp time.Time          `bson:"lastedittimestamp", json:"lastedittimestamp"`
+	Hidden            bool               `bson:"hidden", json:"hidden"`
+	Published         bool               `bson:"published", json:"published"`
+	PublishDate       time.Time          `bson:"publishdate", json:"publishdate"`
+	Tags              []string           `bson:"tags", json:"tags"`
 }
 
 type MongoProject struct {
@@ -79,14 +83,18 @@ func (handler *MongodbHandler) AddPost(ctx context.Context, post models.Post) er
 	// }
 	newID := primitive.NewObjectID()
 
+	timeOfAddage := time.Now()
+
 	newPost := MongoPost{
-		ID:          newID,
-		Title:       post.Title,
-		Content:     post.Content,
-		Description: post.Description,
-		Thumbnail:   post.Thumbnail,
-		Timestamp:   time.Now(),
-		Tags:        post.Tags,
+		ID:                newID,
+		Title:             post.Title,
+		Content:           post.Content,
+		Description:       post.Description,
+		Thumbnail:         post.Thumbnail,
+		LastEditTimestamp: timeOfAddage,
+		Hidden:            post.Hidden,
+		Published:         false,
+		Tags:              post.Tags,
 	}
 
 	_, err := s.Database("MojSajt").Collection("posts").InsertOne(ctx, newPost)
@@ -107,6 +115,8 @@ func (handler *MongodbHandler) UpdatePost(ctx context.Context, post models.Post)
 	fields["content"] = post.Content
 	fields["description"] = post.Description
 	fields["thumbnail"] = post.Thumbnail
+	fields["lastedittimestamp"] = time.Now()
+	fields["hidden"] = post.Hidden
 
 	for key, value := range fields {
 		updateFields = append(updateFields, bson.E{key, value})
@@ -128,11 +138,14 @@ func (handler *MongodbHandler) ReplacePost(ctx context.Context, post models.Post
 	if id, err := primitive.ObjectIDFromHex(post.ID); err == nil {
 
 		newPost := MongoPost{
-			ID:          id,
-			Title:       post.Title,
-			Content:     post.Content,
-			Description: post.Description,
-			Thumbnail:   post.Thumbnail,
+			ID:                id,
+			Title:             post.Title,
+			Content:           post.Content,
+			Description:       post.Description,
+			LastEditTimestamp: time.Now(),
+			Hidden:            post.Hidden,
+			Published:         post.Published,
+			Thumbnail:         post.Thumbnail,
 		}
 		_, err := s.Database("MojSajt").Collection("posts").ReplaceOne(ctx, bson.D{{"_id", id}}, newPost)
 		return err
@@ -162,9 +175,15 @@ func (handler *MongodbHandler) PublishPost(ctx context.Context, id string) error
 	// if err != nil {
 	// 	return err
 	// }
+	timestamp := time.Now()
 
 	if oid, err := primitive.ObjectIDFromHex(id); err == nil {
-		_, err := s.Database("MojSajt").Collection("posts").UpdateOne(ctx, bson.D{{"_id", oid}}, bson.D{{"$set", bson.M{"published": true}}})
+		_, err := s.Database("MojSajt").Collection("posts").UpdateOne(ctx, bson.D{{"_id", oid}}, bson.D{{"$set",
+			bson.M{
+				"published":         true,
+				"publishtimestamp":  timestamp,
+				"lastedittimestamp": timestamp,
+			}}})
 		return err
 	} else {
 		return err
@@ -186,12 +205,15 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 	defer cursor.Close(ctx)
 	for _, mpost := range mposts {
 		posts = append(posts, models.Post{
-			ID:          mpost.ID.Hex(),
-			Title:       mpost.Title,
-			Content:     mpost.Content,
-			Description: mpost.Description,
-			Thumbnail:   mpost.Thumbnail,
-			Timestamp:   mpost.Timestamp.Format("January-02-2006"),
+			ID:                mpost.ID.Hex(),
+			Title:             mpost.Title,
+			Content:           mpost.Content,
+			Description:       mpost.Description,
+			Thumbnail:         mpost.Thumbnail,
+			PublishTimestamp:  mpost.PublishTimestamp.Format("January-02-2006"),
+			LastEditTimestamp: mpost.LastEditTimestamp.Format("January-02-2006"),
+			Published:         mpost.Published,
+			Hidden:            mpost.Hidden,
 		})
 	}
 	return posts, err
@@ -215,12 +237,12 @@ func (handler *MongodbHandler) GetPost(ctx context.Context, id string) (models.P
 				return models.Post{}, err
 			}
 			post = models.Post{
-				ID:          mpost.ID.Hex(),
-				Title:       mpost.Title,
-				Content:     mpost.Content,
-				Description: mpost.Description,
-				Thumbnail:   mpost.Thumbnail,
-				Timestamp:   mpost.Timestamp.Format("January-02-2006"),
+				ID:               mpost.ID.Hex(),
+				Title:            mpost.Title,
+				Content:          mpost.Content,
+				Description:      mpost.Description,
+				Thumbnail:        mpost.Thumbnail,
+				PublishTimestamp: mpost.PublishTimestamp.Format("January-02-2006"),
 			}
 			return post, nil
 		}

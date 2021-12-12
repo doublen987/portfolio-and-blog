@@ -20,15 +20,29 @@
     font-family: "Bangers", "cursive";
     font-size: 50px;
     text-shadow: 6px 6px 0 #26021d;
-    text-align: center;
+}
+
+.post-date {
+    color: #fbc23f;
+    font-size: 20px;
+    margin-top: 20px;
 }
 
 .post-content{
-    color: #d08a12;
-    font-family: "Bangers", "cursive";
-    font-size: 25px;
+    color: white;
+    font-weight: bold;;
+    font-family: 'Open Sans', "cursive";
+    font-size: 20px;
     text-shadow: 2px 2px 0 #26021d;
     text-align: left;
+}
+
+.post-content a {
+    color: #fbc23f;
+    text-decoration: none;
+}
+.post-content a:hover {
+    color: #d08a12;
 }
 
 .post-link {
@@ -37,6 +51,10 @@
     font-size: 20px;
     text-shadow: 2px 2px 0 #26021d;
     text-align: left;
+    text-decoration: none;
+}
+.post-link::marker {
+    color: #fbc23f;
 }
 
 .language-markup {
@@ -52,6 +70,25 @@ code {
     word-spacing: -2px;
     font-size: 16px;
 }
+
+::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #26021d;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #d08a12;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #fbc23f;
+  }
 
 @media screen and (max-width: 800px) {
     .link-holder {

@@ -21,8 +21,10 @@ func HandlePost(links []models.Link, post models.Post, w io.Writer) {
     <title>doublen987</title>
     <link rel="icon" href="/content/doublen987-logo-5.svg">
     <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@500;600&family=Voces&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/content/shared.css">
     <link rel="stylesheet" href="/content/homepage.css">
     <link rel="stylesheet" href="/content/projects.css">
@@ -101,7 +103,7 @@ func HandlePost(links []models.Link, post models.Post, w io.Writer) {
 	_buffer.WriteString(post.Title)
 	_buffer.WriteString(`</div>
             <div class="post-date">`)
-	_buffer.WriteString(post.Timestamp)
+	_buffer.WriteString(post.PublishTimestamp)
 	_buffer.WriteString(`</div>
             <div class="post-content">`)
 	_buffer.WriteString(post.Content)

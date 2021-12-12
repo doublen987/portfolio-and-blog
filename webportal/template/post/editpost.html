@@ -22,8 +22,10 @@
                     <div id="description-<%=s post.ID %>" style="display:none;"><%=s post.Description %></div>
                     <div id="content-<%=s post.ID %>" style="display:none;"><%=s post.Content %></div>
                     <div id="thumbnail-<%=s post.ID %>" style="display:none;"><%=s post.Thumbnail %></div>
-                    <div id="timestamp-<%=s post.ID %>" style="display:none;"><%=s post.Timestamp %></div>
-                    
+                    <div id="publishtimestamp-<%=s post.ID %>" style="display:none;"><%=s post.PublishTimestamp %></div>
+                    <div id="lastedittimestamp-<%=s post.ID %>" style="display:none;"><%=s post.LastEditTimestamp %></div>
+                    <div id="hidden-<%=s post.ID %>" style="display:none;"><%=b post.Hidden %></div>
+                    <div id="published-<%=s post.ID %>" style="display:none;"><%=b post.Published %></div>
                 <% } %>
             </div>
             <div class="input-container">
@@ -42,13 +44,20 @@
                 <img id="post-thumbnail-image" src="/content/no-image.png">
             </div>
             <div class="label-container">
-                <div class="editor-label">Published: </div><div class="text">False</div>
+                <div class="editor-label">Hidden: </div>
+                <select name="Hidden" id="post-hidden" class="text" >
+                    <option id="post-hidden-option-true" value="true">True</option>
+                    <option id="post-hidden-option-false" value="false">False</option>
+                </select>
+            </div>
+            <div class="label-container">
+                <div class="editor-label">Published: </div><div id="post-published" class="text"></div>
             </div>
             <div class="label-container">
                 <div class="editor-label">Date Published: </div><div id="post-publish-date" class="text"></div>
             </div>
             <div class="label-container">
-                <div class="editor-label">Last Modified </div><div class="text"></div>
+                <div class="editor-label">Last Modified: </div><div id="post-last-edit-date" class="text"></div>
             </div>
             <div>
                 <textarea name="Content" id="post-content"></textarea>

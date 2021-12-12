@@ -216,6 +216,11 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 			post.Title = req.FormValue("Title")
 			post.Description = req.FormValue("Description")
 			post.Content = req.FormValue("Content")
+			if req.FormValue("Hidden") == "True" {
+				post.Hidden = true
+			} else if req.FormValue("Hidden") == "False" {
+				post.Hidden = false
+			}
 			post.Thumbnail = fileName
 
 			ctx := req.Context()
@@ -227,7 +232,7 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 				}
 			} else {
 				post.ID = selectedPostId
-				err := db.ReplacePost(ctx, post)
+				_, err := db.UpdatePost(ctx, post)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
