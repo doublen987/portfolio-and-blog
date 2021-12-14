@@ -10,7 +10,7 @@ import (
 	"github.com/shiyanhui/hero"
 )
 
-func HandleBlog(posts []models.Post, w io.Writer) {
+func HandleBlog(posts []models.Post, currentPage int, pageBlockStart int, numOfPages int, w io.Writer) {
 	_buffer := hero.GetBuffer()
 	defer hero.PutBuffer(_buffer)
 	_buffer.WriteString(`<!DOCTYPE html>
@@ -111,6 +111,36 @@ func HandleBlog(posts []models.Post, w io.Writer) {
         `)
 	}
 	_buffer.WriteString(` 
+        
+    </div>
+    <div class="page-buttons-container"> 
+        `)
+	if currentPage > 1 {
+		_buffer.WriteString(`
+            <a href="/blog?page=`)
+		hero.FormatInt(int64((currentPage - 1)), _buffer)
+		_buffer.WriteString(`" class="page-button" id="page-button-previous"><</a>
+        `)
+	}
+	for i := pageBlockStart; i < (pageBlockStart+5) && i < numOfPages+1; i++ {
+		_buffer.WriteString(`
+            <a href="/blog?page=`)
+		hero.FormatInt(int64(i), _buffer)
+		_buffer.WriteString(`" class="page-button" id="page-button-`)
+		hero.FormatInt(int64(i), _buffer)
+		_buffer.WriteString(`">`)
+		hero.FormatInt(int64(i), _buffer)
+		_buffer.WriteString(`</a>
+        `)
+	}
+	if currentPage < (numOfPages) {
+		_buffer.WriteString(`
+            <a href="/blog?page=`)
+		hero.FormatInt(int64((currentPage + 1)), _buffer)
+		_buffer.WriteString(`" class="page-button" id="page-button-next">></a>
+        `)
+	}
+	_buffer.WriteString(`
     </div>
 `)
 

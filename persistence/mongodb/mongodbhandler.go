@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -194,9 +195,48 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 	// err := s.Connect(ctx)
 	// defer s.Disconnect(ctx)
 
+	filter := bson.M{}
+	findOptions := options.Find()
+	findOptions.SetSort(bson.D{{Key: "lastedittimestamp", Value: -1}})
+	var perPage int64 = 10
+
+	if page := ctx.Value("page"); page != nil && page != "" {
+
+		pageInt, err := strconv.Atoi(page.(string))
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			findOptions.SetLimit(perPage)
+			findOptions.SetSkip((int64(pageInt) - 1) * perPage)
+		}
+	}
+
+	if searchTerm := ctx.Value("search-term"); searchTerm != nil && searchTerm != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{
+					"title": bson.M{
+						"$regex": primitive.Regex{
+							Pattern: searchTerm.(string),
+							Options: "i",
+						},
+					},
+				},
+				{
+					"description": bson.M{
+						"$regex": primitive.Regex{
+							Pattern: searchTerm.(string),
+							Options: "i",
+						},
+					},
+				},
+			},
+		}
+	}
+
 	mposts := []MongoPost{}
 	posts := []models.Post{}
-	cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, bson.D{})
+	cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, filter, findOptions)
 	if err != nil {
 		return posts, err
 	}
@@ -217,6 +257,14 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 		})
 	}
 	return posts, err
+}
+func (handler *MongodbHandler) GetPostsCount(ctx context.Context) (int64, error) {
+	s := handler.Session
+	count, err := s.Database("MojSajt").Collection("posts").CountDocuments(ctx, bson.M{})
+	if err != nil {
+		fmt.Println(err)
+	}
+	return count, err
 }
 func (handler *MongodbHandler) GetPost(ctx context.Context, id string) (models.Post, error) {
 	s := handler.Session

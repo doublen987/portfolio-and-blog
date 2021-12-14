@@ -1,4 +1,4 @@
-<%: func HandleBlog(posts []models.Post, w io.Writer) %>
+<%: func HandleBlog(posts []models.Post, currentPage int, pageBlockStart int, numOfPages int, w io.Writer) %>
 <%~ "index.html" %>
 <%@ body { %>
     <div class="posts-container">
@@ -13,5 +13,17 @@
                 <div class="post-card-description"><%==s post.Description %></div>
             </div>
         <% } %> 
+        
+    </div>
+    <div class="page-buttons-container"> 
+        <% if currentPage > 1 {%>
+            <a href="/blog?page=<%==i (currentPage-1)%>" class="page-button" id="page-button-previous"><</a>
+        <% } %>
+        <% for i := pageBlockStart; i < (pageBlockStart + 5) && i < numOfPages+1; i++ { %>
+            <a href="/blog?page=<%==i i%>" class="page-button" id="page-button-<%==i i%>"><%==i i%></a>
+        <% } %>
+        <% if currentPage < (numOfPages) {%>
+            <a href="/blog?page=<%==i (currentPage+1)%>" class="page-button" id="page-button-next">></a>
+        <% } %>
     </div>
 <% } %>

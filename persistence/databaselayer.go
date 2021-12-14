@@ -25,6 +25,7 @@ type STORAGETYPE string
 type DBHandler interface {
 	GetLinks(ctx context.Context) ([]models.Link, error)
 	GetPosts(ctx context.Context) ([]models.Post, error)
+	GetPostsCount(ctx context.Context) (int64, error)
 	GetPost(ctx context.Context, id string) (models.Post, error)
 	AddPost(ctx context.Context, post models.Post) error
 	UpdatePost(ctx context.Context, post models.Post) (models.Post, error)

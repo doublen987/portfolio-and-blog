@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	//"encoding/json"
@@ -580,12 +581,54 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 		// 	},
 		// }
 
-		posts, err = db.GetPosts(req.Context())
+		newCtx := req.Context()
+
+		if searchTerm := req.URL.Query().Get("search"); searchTerm != "" {
+			newCtx = context.WithValue(newCtx, "search-term", searchTerm)
+		} else {
+			newCtx = context.WithValue(newCtx, "search-term", "")
+		}
+
+		var currentPage int
+
+		if page := req.URL.Query().Get("page"); page != "" {
+			newCtx = context.WithValue(newCtx, "page", page)
+			currentPage, err = strconv.Atoi(page)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		} else {
+			newCtx = context.WithValue(newCtx, "page", "")
+		}
+
+		postsCount, err := db.GetPostsCount(newCtx)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		pageBlockStart := (currentPage/5)*5 + 1
+		numOfPages := (postsCount / 10) + 1
+		if postsCount%10 == 0 {
+			numOfPages--
+		}
+
+		if currentPage < 1 {
+			http.Redirect(w, req, "/blog?page=1", http.StatusSeeOther)
+			return
+		}
+		if currentPage > int(numOfPages) {
+			http.Redirect(w, req, fmt.Sprintf("/blog?page=%d", numOfPages), http.StatusSeeOther)
+			return
+		}
+
+		posts, err = db.GetPosts(newCtx)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		template.HandleBlog(posts, w)
+		template.HandleBlog(posts, currentPage, pageBlockStart, int(numOfPages), w)
 	})
 
 	r.PathPrefix("/knowledgetimeline").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

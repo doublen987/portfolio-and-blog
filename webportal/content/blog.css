@@ -38,3 +38,21 @@
     text-align: center;
     padding: 20px 20px 20px 20px;
 }
+
+.page-buttons-container {
+    margin: auto;
+    text-align: center;
+}
+
+.page-button {
+    color: #d08a12;
+    font-size: 30px;
+    text-decoration: none;
+    border: 2px solid #d08a12;
+}
+
+.page-button:hover {
+    color:#fbc23f;
+    border-color: #fbc23f;
+}
+
