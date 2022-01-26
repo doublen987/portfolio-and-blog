@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/doublen987/Projects/MySite/server/persistence/models"
 )
@@ -19,6 +21,14 @@ var (
 	ErrPostNotFound  = errors.New("Cannot find post")
 	ErrInvalidPostId = errors.New("Invalid post id")
 )
+
+type MongoUser struct {
+	ID          primitive.ObjectID `bson:"_id", json:"ID"`
+	Username    string             `bson:"username", json:"username"`
+	Password    string             `bson:"password", json:"password"`
+	Description string             `bson:"description", json:"description"`
+	Thumbnail   string             `bson:"thumbnail", json:"thumbnail"`
+}
 
 type MongoPost struct {
 	ID                primitive.ObjectID `bson:"_id", json:"ID"`
@@ -61,6 +71,14 @@ type MongodbHandler struct {
 	Session *mongo.Client
 }
 
+func getHash(pwd []byte) string {
+	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
+	if err != nil {
+		log.Println(err)
+	}
+	return string(hash)
+}
+
 func NewMongodbHandler(connection string) (*MongodbHandler, error) {
 	fmt.Println("Connecting to mongodb: " + connection)
 	//s, err := mgo.Dial(connection)
@@ -74,6 +92,130 @@ func NewMongodbHandler(connection string) (*MongodbHandler, error) {
 	return &MongodbHandler{
 		Session: s,
 	}, err
+}
+func (handler *MongodbHandler) AddUser(ctx context.Context, user models.User) error {
+	s := handler.Session
+
+	newID := primitive.NewObjectID()
+
+	newUser := MongoUser{
+		ID:          newID,
+		Username:    user.Username,
+		Password:    getHash([]byte(user.Password)),
+		Description: user.Description,
+		Thumbnail:   user.Thumbnail,
+	}
+
+	_, err := s.Database("MojSajt").Collection("users").InsertOne(ctx, newUser)
+	return err
+}
+func (handler *MongodbHandler) RemoveUser(ctx context.Context, userID string) error {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+	// if err != nil {
+	// 	return err
+	// }
+
+	if oid, err := primitive.ObjectIDFromHex(userID); err == nil {
+		_, err := s.Database("MojSajt").Collection("users").DeleteOne(ctx, bson.D{{"_id", oid}})
+		return err
+	} else {
+		return err
+	}
+}
+func (handler *MongodbHandler) UpdateUser(ctx context.Context, user models.User) error {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+	// if err != nil {
+	// 	return models.Post{}, err
+	// }
+	var updateFields bson.D
+
+	var fields map[string]interface{}
+	fields = make(map[string]interface{})
+	fields["username"] = user.Username
+	if user.Password != "" {
+		fields["password"] = getHash([]byte(user.Password))
+	}
+	fields["description"] = user.Description
+	fields["thumbnail"] = user.Thumbnail
+
+	for key, value := range fields {
+		updateFields = append(updateFields, bson.E{key, value})
+	}
+
+	fmt.Println(primitive.ObjectIDFromHex(user.ID))
+	if id, err := primitive.ObjectIDFromHex(user.ID); err == nil {
+		_, err := s.Database("MojSajt").Collection("users").UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", updateFields}})
+
+		return err
+	} else {
+		return ErrInvalidPostId
+	}
+}
+func (handler *MongodbHandler) GetUsers(ctx context.Context) ([]models.User, error) {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+
+	filter := bson.M{}
+	findOptions := options.Find()
+	findOptions.SetSort(bson.D{{Key: "Username", Value: 1}})
+
+	if searchTerm := ctx.Value("search-term"); searchTerm != nil && searchTerm != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{
+					"username": bson.M{
+						"$regex": primitive.Regex{
+							Pattern: searchTerm.(string),
+							Options: "i",
+						},
+					},
+				},
+			},
+		}
+	}
+
+	musers := []MongoUser{}
+	users := []models.User{}
+	cursor, err := s.Database("MojSajt").Collection("users").Find(ctx, filter, findOptions)
+	if err != nil {
+		return users, err
+	}
+	cursor.All(ctx, &musers)
+	defer cursor.Close(ctx)
+	for _, muser := range musers {
+		users = append(users, models.User{
+			ID:          muser.ID.Hex(),
+			Username:    muser.Username,
+			Password:    muser.Password,
+			Description: muser.Description,
+			Thumbnail:   muser.Thumbnail,
+		})
+	}
+	return users, err
+}
+func (handler *MongodbHandler) Authenticate(ctx context.Context, username string, password string) (bool, error) {
+	s := handler.Session
+
+	muser := MongoUser{}
+	cursor, err := s.Database("MojSajt").Collection("users").Find(ctx, bson.D{{"username", username}})
+	fmt.Println(getHash([]byte(password)))
+	defer cursor.Close(ctx)
+	if cursor.Next(ctx) {
+		err = cursor.Decode(&muser)
+		if err != nil {
+			return false, err
+		}
+		if bcrypt.CompareHashAndPassword([]byte(muser.Password), []byte(password)) == nil {
+			return true, nil
+		}
+		return false, nil
+	}
+	return false, ErrPostNotFound
 }
 func (handler *MongodbHandler) AddPost(ctx context.Context, post models.Post) error {
 	s := handler.Session

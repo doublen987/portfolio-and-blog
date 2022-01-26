@@ -35,14 +35,14 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func Login(username string, password string) (LoginOutput, error) {
+func GenerateJWTToken(username string, password string) (LoginOutput, error) {
 	var out LoginOutput
 
-	expectedPassword, ok := users[username]
+	// expectedPassword, ok := users[username]
 
-	if !ok || expectedPassword != password {
-		return out, ErrUsernamePasswordNotFound
-	}
+	// if !ok || expectedPassword != password {
+	// 	return out, ErrUsernamePasswordNotFound
+	// }
 
 	expirationTime := time.Now().Add(24 * 60 * time.Minute)
 

@@ -50,12 +50,13 @@ const KeyAuthUserID key = "auth_user_id"
 
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//fmt.Println()
 		c, err := r.Cookie("token")
 
 		//If the request doesn't contain the authentication token handle the request without the authentication id in the context
 		if err != nil {
-			next.ServeHTTP(w, r)
+			//next.ServeHTTP(w, r)
+			//template.HandleLogin("", w)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
@@ -80,6 +81,15 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 		log.Fatal(err)
 	}
 
+	if authenticated, err := db.Authenticate(context.Background(), "admin", "admin"); authenticated == false {
+		err = db.AddUser(context.Background(), models.User{Username: "admin", Password: "admin", Description: ""})
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		fmt.Println(err)
+	}
+
 	r.Path("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		template.Homepage("Hi there!", "My name is Nikola, I'm a full-stack web developer from Belgrade, Serbia. Welcome to my website, here you can find all sorts of information about me, projects I've worked on, and technologies I'm currently interested in!", w)
 	})
@@ -90,10 +100,25 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 	})
 
 	r.PathPrefix("/login").Methods("POST").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+
 		username := req.FormValue("username")
 		password := req.FormValue("password")
+		fmt.Println("Username: " + username + " Password: " + password)
+		authenticated, err := db.Authenticate(ctx, username, password)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			template.HandleLogin("Server error", w)
+			return
+		}
 
-		out, err := functionality.Login(username, password)
+		if !authenticated {
+			w.WriteHeader(http.StatusInternalServerError)
+			template.HandleLogin("Server error", w)
+			return
+		}
+
+		out, err := functionality.GenerateJWTToken(username, password)
 		if err == functionality.ErrUsernamePasswordNotFound {
 			w.WriteHeader(http.StatusBadRequest)
 			template.HandleLogin("Wrong username or password", w)
@@ -147,6 +172,137 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 
 	// 	template.HandleEditPost(newPost, w)
 	// })))
+
+	r.PathPrefix("/users/edit").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// defer req.Body.Close()
+		// vars := mux.Vars(req)
+		// postID := vars["postID"]
+		// ctx := req.Context()
+		// post, err := db.GetPost(ctx, postID)
+		// if err != nil {
+		// 	http.Error(w, err.Error(), http.StatusNotFound)
+		// 	return
+		// }
+		ctx := req.Context()
+		users, err := db.GetUsers(ctx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		template.HandleEditUsers(users, w)
+	})))
+
+	r.PathPrefix("/users/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		defer req.Body.Close()
+		method := req.FormValue("Send")
+		ctx := req.Context()
+
+		if method == "POST" {
+			user := models.User{}
+			users := []models.User{}
+			// if err := json.NewDecoder(req.Body).Decode(post); err != nil {
+			// 	http.Error(w, err.Error(), http.StatusBadRequest)
+			// 	return
+			// }
+
+			//1. parse input, type multipart/form-data
+			//ParseMultipartForm parses a request body as multipart/form-data. The whole request body is parsed and up to a
+			//total of maxMemory bytes of its file parts are stored in memory, with the remainder stored on disk in temporary
+			//files. ParseMultipartForm calls ParseForm if necessary. After one call to ParseMultipartForm, subsequent calls
+			//have no effect.
+			req.ParseMultipartForm(10 << 20)
+
+			//2. retrieve file from posted form-data
+			var fileName string = ""
+			file, handler, err := req.FormFile("Thumbnail")
+
+			oldPassword := req.FormValue("OldPassword")
+			selectedUserId := req.FormValue("SelectedUser")
+			user.Username = req.FormValue("Username")
+			user.Password = req.FormValue("Password")
+			user.Description = req.FormValue("Description")
+
+			if err != nil {
+				fmt.Println("Error Retrieving thumbnail from request:")
+				fmt.Println(err)
+				fileName = req.FormValue("ThumbnailName")
+			} else {
+				defer file.Close()
+				fmt.Printf("Uploaded File: %+v\n", handler.Filename)
+				fmt.Printf("File Size: %+v\n", handler.Size)
+				fmt.Printf("MIME Header: %+v\n", handler.Header)
+				fileBytes, err := ioutil.ReadAll(file)
+				if err != nil {
+					fmt.Println("Error Reading file bytes:")
+					fmt.Println(err)
+				} else {
+					fileName, err = fh.AddFile(fileBytes, handler.Filename)
+					if err != nil {
+						fmt.Println("Error Adding File:")
+						fmt.Println(err)
+					}
+				}
+			}
+
+			user.Thumbnail = fileName
+
+			if selectedUserId == "" || selectedUserId == "None" {
+				err := db.AddUser(ctx, user)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else {
+				if user.Password != "" {
+					if authenticated, err := db.Authenticate(ctx, user.Username, oldPassword); authenticated != true || err != nil {
+						http.Error(w, "Error confirming your old password", http.StatusBadRequest)
+						return
+					}
+				}
+
+				user.ID = selectedUserId
+				err := db.UpdateUser(ctx, user)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			users, err = db.GetUsers(ctx)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			fmt.Println(user.Username)
+			fmt.Println(user.Password)
+
+			template.HandleEditUsers(users, w)
+		}
+		if method == "DELETE" {
+			selectedUserId := req.FormValue("SelectedUser")
+			fmt.Printf("Deleting user: $s\n", selectedUserId)
+
+			ctx := req.Context()
+			if selectedUserId != "" && selectedUserId != "None" {
+				err := db.RemoveUser(ctx, selectedUserId)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			users, err := db.GetUsers(ctx)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			fmt.Printf("Deleted user: $s\n", selectedUserId)
+			template.HandleEditUsers(users, w)
+		}
+
+	})))
 
 	r.PathPrefix("/blog/edit").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// defer req.Body.Close()
@@ -644,7 +800,7 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 		template.HandleKnowledgeTimeline(timeline, w)
 	})
 
-	r.PathPrefix("/content/images/{imageID}").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	r.PathPrefix("/content/images/{imageID}").Methods("GET").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		//ctx := req.Context()
 		imageBytes, err := fh.GetFile(vars["imageID"])
@@ -675,7 +831,7 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 
 		w.Write(imageBytes)
 		w.WriteHeader(http.StatusOK)
-	})))
+	}))
 	r.PathPrefix("/content/images").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		//vars := mux.Vars(req)
 		//ctx := req.Context()

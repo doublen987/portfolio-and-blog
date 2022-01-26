@@ -19,7 +19,7 @@ import (
 type configuration struct {
 	ServerAddress      string `json:"webserver"`
 	DatabaseType       uint8  `json:"databasetype"`
-	DatabaseConnection string `jdon:"dbconnection"`
+	DatabaseConnection string `json:"dbconnection"`
 	FrontEnd           string `json:"frontend"`
 }
 
@@ -111,7 +111,6 @@ func main() {
 		fmt.Println("Daemon process ID is : ", cmd.Process.Pid)
 		savePID(cmd.Process.Pid)
 		os.Exit(0)
-
 	}
 
 	// upon receiving the stop command

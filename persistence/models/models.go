@@ -4,6 +4,14 @@ type Collection struct {
 	ID string `bson:"_id", json:"id"`
 }
 
+type User struct {
+	ID          string `bson:"_id", json:"ID"`
+	Username    string `bson:"username", json:"username"`
+	Password    string `bson:"password", json:"password"`
+	Description string `bson:"description", json:"description"`
+	Thumbnail   string `bson:"thumbnail", json:"thumbnail"`
+}
+
 type Post struct {
 	ID                string   `bson:"_id",json:"id"`
 	Title             string   `bson:"title", json:"title"`
