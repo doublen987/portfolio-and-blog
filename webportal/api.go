@@ -73,7 +73,7 @@ func Middleware(next http.Handler) http.Handler {
 	})
 }
 
-func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype string) error {
+func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection string, filestoragetype string) (chan error, chan error) {
 	r := mux.NewRouter()
 	db, err := persistence.GetDataBaseHandler(dbtype, dbconnection)
 	fh, err := persistence.GetFileHandler(filestoragetype, "")
@@ -832,6 +832,7 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 		w.Write(imageBytes)
 		w.WriteHeader(http.StatusOK)
 	}))
+
 	r.PathPrefix("/content/images").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		//vars := mux.Vars(req)
 		//ctx := req.Context()
@@ -858,5 +859,11 @@ func RunAPI(dbtype uint8, addr string, dbconnection string, filestoragetype stri
 
 	r.PathPrefix("/content/").Handler(http.StripPrefix("/content/", http.FileServer(http.Dir("./webportal/content"))))
 
-	return http.ListenAndServe(addr, r)
+	httpErrChan := make(chan error)
+	httpIsErrChan := make(chan error)
+
+	go func() { httpIsErrChan <- http.ListenAndServeTLS(tlsendpoint, "cert.pem", "key.pem", r) }()
+	go func() { httpErrChan <- http.ListenAndServe(endpoint, r) }()
+
+	return httpErrChan, httpIsErrChan
 }

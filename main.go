@@ -30,11 +30,17 @@ func startServer() {
 	}
 
 	address := config.Host + ":" + config.Port
+	tlsaddress := config.Host + ":" + config.PortTLS
 	log.Println("Starting web server on addres: ", address)
 
-	err = webportal.RunAPI(config.Databasetype, address, config.DBConnection, config.FileStorageType)
-	if err != nil {
-		log.Fatal(err)
+	httpErrChan, httpIsErrChan := webportal.RunAPI(config.Databasetype, address, tlsaddress, config.DBConnection, config.FileStorageType)
+	for true {
+		select {
+		case err := <-httpErrChan:
+			log.Print("HTTP Error: ", err)
+		case err := <-httpIsErrChan:
+			log.Print("HTTPS Error: ", err)
+		}
 	}
 }
 

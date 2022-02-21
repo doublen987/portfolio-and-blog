@@ -15,9 +15,9 @@ var (
 	FileStorageTypeDefault     = persistence.FILESYSTEM
 	StoragePathDefault         = "images"
 	HostDefault                = ""
-	PortDefault                = "8181"
+	PortDefault                = "80"
 	HostTLSDefault             = ""
-	TLSPortDefault             = "9191"
+	TLSPortDefault             = "443"
 	MessageBrokerTypeDefault   = "amqp"
 	AMQPMessageBrokerDefault   = "amqp://guest:guest@localhost:5672"
 	KafkaMessageBrokersDefault = []string{"localhost:9092"}
@@ -29,9 +29,9 @@ type ServiceConfig struct {
 	FileStorageType     string   `json:"filestoragetype"`
 	Storagepath         string   `json:"storagepath"`
 	Host                string   `json:"host"`
-	Port                string   `json:"port`
+	Port                string   `json:"port"`
 	HostTLS             string   `json:"host_tls"`
-	PortTLS             string   `json:"post_tls`
+	PortTLS             string   `json:"port_tls"`
 	MessageBrokerType   string   `json:"message_broker_type"`
 	AMQPMessageBroker   string   `json:"amqp_message_broker"`
 	KafkaMessageBrokers []string `json:"kafka_message_brokers"`
@@ -67,6 +67,9 @@ func ExtractConfiguration(filename string) (ServiceConfig, error) {
 	}
 	if port := os.Getenv("PORT"); port != "" {
 		conf.Port = port
+	}
+	if portTLS := os.Getenv("TLS_PORT"); portTLS != "" {
+		conf.PortTLS = portTLS
 	}
 	if DBType := os.Getenv("DB_TYPE"); DBType != "" {
 		if i, err := strconv.ParseUint(DBType, 10, 8); err != nil {
