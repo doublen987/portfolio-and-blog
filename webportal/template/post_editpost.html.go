@@ -128,6 +128,11 @@ func HandleEditPost(posts []models.Post, w io.Writer) {
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(post.Thumbnail, _buffer)
 		_buffer.WriteString(`</div>
+                    <div id="thumbnailstretched-`)
+		hero.EscapeHTML(post.ID, _buffer)
+		_buffer.WriteString(`" style="display:none;">`)
+		hero.FormatBool(post.ThumbnailStretched, _buffer)
+		_buffer.WriteString(`</div>
                     <div id="publishtimestamp-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
@@ -163,6 +168,13 @@ func HandleEditPost(posts []models.Post, w io.Writer) {
             <div class="input-container">
                 <label for="post-thumbnail" class="editor-label">Thumbnail: </label>
                 <input name="Thumbnail" type="file" accept="image/*" id="post-thumbnail"></input>
+            </div>
+            <div class="label-container">
+                <div class="editor-label">Thumbnail stretched: </div>
+                <select name="ThumbnailStretched" id="post-thumbnailstretched" class="text" >
+                    <option id="post-thumbnailstretched-option-true" value="true">True</option>
+                    <option id="post-thumbnailstretched-option-false" value="false">False</option>
+                </select>
             </div>
             <div class="input-container">
                 <img id="post-thumbnail-image" src="/content/no-image.png">

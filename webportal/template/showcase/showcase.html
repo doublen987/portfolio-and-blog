@@ -5,7 +5,7 @@
         <% for _, project := range projects { %>
             <div class="project-card">
                 <% if project.Thumbnail != "" {%>
-                    <img class="project-image" src="/content/images/<%=s project.Thumbnail %>"/>
+                    <img class="project-image <% if project.ThumbnailStretched == true {%> stretched-image <%}%>" src="/content/images/<%=s project.Thumbnail %>"/>
                 <% } else { %>
                     <img class="project-image" src="/content/no-image.png"/>
                 <% } %>

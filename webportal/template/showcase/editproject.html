@@ -16,6 +16,8 @@
                     <div id="title-<%=s project.ID %>" style="display:none;"><%=s project.Title %></div>
                     <div id="description-<%=s project.ID %>" style="display:none;"><%=s project.Description %></div>
                     <div id="link-<%=s project.ID %>" style="display:none;"><%=s project.Link %></div>
+                    <div id="thumbnail-<%=s project.ID %>" style="display:none;"><%=s project.Thumbnail %></div>
+                    <div id="thumbnailstretched-<%=s project.ID %>" style="display:none;"><%=b project.ThumbnailStretched %></div>
                 <% } %>
             </div>
             <div class="input-container">
@@ -34,6 +36,14 @@
                 <label for="post-thumbnail" class="editor-label">Thumbnail: </label>
                 <input name="Thumbnail" type="file" accept="image/*" id="post-thumbnail" ></input>
             </div>
+            <input type="hidden" id="post-thumbnail-name" name="ThumbnailName" value="">
+            <div class="label-container">
+                <div class="editor-label">Thumbnail stretched: </div>
+                <select name="ThumbnailStretched" id="post-thumbnailstretched" class="text" >
+                    <option id="post-thumbnailstretched-option-true" value="true">True</option>
+                    <option id="post-thumbnailstretched-option-false" value="false">False</option>
+                </select>
+            </div>
             <div class="submit-container">
                 <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
                 <button class="submit-btn" type="submit" name="Send" value="DELETE">Delete</button>
@@ -41,22 +51,6 @@
         </form>
     </div>
     
-    <script>
-        var select = document.getElementById("chosen-post");
-        select.addEventListener("change", () => {
-            if(select.value == "None") {
-                document.getElementById("post-title").value = "";
-                document.getElementById("post-description").value = "";
-                document.getElementById("post-link").value = "";
-                return
-            }
-            var description = document.getElementById("description-" + select.value).innerHTML;
-            var title = document.getElementById("title-" + select.value).innerHTML;
-            var link = document.getElementById("link-" + select.value).innerHTML;
-            document.getElementById("post-description").value = description;
-            document.getElementById("post-title").value = title;
-            document.getElementById("post-link").value = link;
-        })
-    </script>
+    <script src="/content/js/editproject.js"></script>
 
 <% } %>

@@ -31,27 +31,29 @@ type MongoUser struct {
 }
 
 type MongoPost struct {
-	ID                primitive.ObjectID `bson:"_id", json:"ID"`
-	Title             string             `bson: "title,omitempty", json:"title"`
-	Content           string             `bson: "content,omitempty", json:"content"`
-	Description       string             `bson: "description,omitempty", json:"description"`
-	Thumbnail         string             `bson: "thumbnail,omitempty, json: "thumbnail"`
-	PublishTimestamp  time.Time          `bson:"publishtimestamp", json:"publishtimestamp"`
-	LastEditTimestamp time.Time          `bson:"lastedittimestamp", json:"lastedittimestamp"`
-	Hidden            bool               `bson:"hidden", json:"hidden"`
-	Published         bool               `bson:"published", json:"published"`
-	PublishDate       time.Time          `bson:"publishdate", json:"publishdate"`
-	Tags              []string           `bson:"tags", json:"tags"`
+	ID                 primitive.ObjectID `bson:"_id", json:"ID"`
+	Title              string             `bson: "title,omitempty", json:"title"`
+	Content            string             `bson: "content,omitempty", json:"content"`
+	Description        string             `bson: "description,omitempty", json:"description"`
+	Thumbnail          string             `bson: "thumbnail,omitempty, json: "thumbnail"`
+	ThumbnailStretched bool               `bson:"thumbnailstretched", json:"thumbnailstretched"`
+	PublishTimestamp   time.Time          `bson:"publishtimestamp", json:"publishtimestamp"`
+	LastEditTimestamp  time.Time          `bson:"lastedittimestamp", json:"lastedittimestamp"`
+	Hidden             bool               `bson:"hidden", json:"hidden"`
+	Published          bool               `bson:"published", json:"published"`
+	PublishDate        time.Time          `bson:"publishdate", json:"publishdate"`
+	Tags               []string           `bson:"tags", json:"tags"`
 }
 
 type MongoProject struct {
-	ID          primitive.ObjectID `bson:"_id", json:"ID"`
-	Title       string             `bson: "title,omitempty", json:"title"`
-	Link        string             `bson: "link,omitempty", json:"link"`
-	Description string             `bson:"description,omitempty", json:"description"`
-	Thumbnail   string             `bson:"thumbnail,omitempty", json:"description"`
-	Timestamp   time.Time          `bson:"timestamp", json:"timestamp"`
-	Tags        []string           `bson:"tags", json:"tags"`
+	ID                 primitive.ObjectID `bson:"_id", json:"ID"`
+	Title              string             `bson: "title,omitempty", json:"title"`
+	Link               string             `bson: "link,omitempty", json:"link"`
+	Description        string             `bson:"description,omitempty", json:"description"`
+	Thumbnail          string             `bson:"thumbnail,omitempty", json:"thumbnail"`
+	ThumbnailStretched bool               `bson:"thumbnailstretched", json:"thumbnailstretched"`
+	Timestamp          time.Time          `bson:"timestamp", json:"timestamp"`
+	Tags               []string           `bson:"tags", json:"tags"`
 }
 
 type MongoLink struct {
@@ -229,15 +231,16 @@ func (handler *MongodbHandler) AddPost(ctx context.Context, post models.Post) er
 	timeOfAddage := time.Now()
 
 	newPost := MongoPost{
-		ID:                newID,
-		Title:             post.Title,
-		Content:           post.Content,
-		Description:       post.Description,
-		Thumbnail:         post.Thumbnail,
-		LastEditTimestamp: timeOfAddage,
-		Hidden:            post.Hidden,
-		Published:         false,
-		Tags:              post.Tags,
+		ID:                 newID,
+		Title:              post.Title,
+		Content:            post.Content,
+		Description:        post.Description,
+		Thumbnail:          post.Thumbnail,
+		ThumbnailStretched: post.ThumbnailStretched,
+		LastEditTimestamp:  timeOfAddage,
+		Hidden:             post.Hidden,
+		Published:          false,
+		Tags:               post.Tags,
 	}
 
 	_, err := s.Database("MojSajt").Collection("posts").InsertOne(ctx, newPost)
@@ -258,6 +261,7 @@ func (handler *MongodbHandler) UpdatePost(ctx context.Context, post models.Post)
 	fields["content"] = post.Content
 	fields["description"] = post.Description
 	fields["thumbnail"] = post.Thumbnail
+	fields["thumbnailstretched"] = post.ThumbnailStretched
 	fields["lastedittimestamp"] = time.Now()
 	fields["hidden"] = post.Hidden
 
@@ -427,12 +431,13 @@ func (handler *MongodbHandler) GetPost(ctx context.Context, id string) (models.P
 				return models.Post{}, err
 			}
 			post = models.Post{
-				ID:               mpost.ID.Hex(),
-				Title:            mpost.Title,
-				Content:          mpost.Content,
-				Description:      mpost.Description,
-				Thumbnail:        mpost.Thumbnail,
-				PublishTimestamp: mpost.PublishTimestamp.Format("January-02-2006"),
+				ID:                 mpost.ID.Hex(),
+				Title:              mpost.Title,
+				Content:            mpost.Content,
+				Description:        mpost.Description,
+				Thumbnail:          mpost.Thumbnail,
+				ThumbnailStretched: mpost.ThumbnailStretched,
+				PublishTimestamp:   mpost.PublishTimestamp.Format("January-02-2006"),
 			}
 			return post, nil
 		}
@@ -452,13 +457,14 @@ func (handler *MongodbHandler) AddProject(ctx context.Context, project models.Pr
 	newID := primitive.NewObjectID()
 
 	newProject := MongoProject{
-		ID:          newID,
-		Title:       project.Title,
-		Link:        project.Link,
-		Description: project.Description,
-		Thumbnail:   project.Thumbnail,
-		Timestamp:   time.Now(),
-		Tags:        project.Tags,
+		ID:                 newID,
+		Title:              project.Title,
+		Link:               project.Link,
+		Description:        project.Description,
+		Thumbnail:          project.Thumbnail,
+		ThumbnailStretched: project.ThumbnailStretched,
+		Timestamp:          time.Now(),
+		Tags:               project.Tags,
 	}
 
 	_, err := s.Database("MojSajt").Collection("projects").InsertOne(ctx, newProject)
@@ -469,21 +475,27 @@ func (handler *MongodbHandler) UpdateProject(ctx context.Context, project models
 	// err := s.Connect(ctx)
 	// defer s.Disconnect(ctx)
 	// if err != nil {
-	// 	return models.Project{}, err
+	// 	return models.Post{}, err
 	// }
+	var updateFields bson.D
+
+	var fields map[string]interface{}
+	fields = make(map[string]interface{})
+	fields["title"] = project.Title
+	fields["description"] = project.Description
+	fields["link"] = project.Link
+	fields["thumbnail"] = project.Thumbnail
+	fields["thumbnailstretched"] = project.ThumbnailStretched
+
+	for key, value := range fields {
+		updateFields = append(updateFields, bson.E{key, value})
+	}
 
 	fmt.Println(primitive.ObjectIDFromHex(project.ID))
-	if oid, err := primitive.ObjectIDFromHex(project.ID); err == nil {
-		updatedProject := MongoProject{
-			ID:          oid,
-			Title:       project.Title,
-			Link:        project.Link,
-			Description: project.Description,
-			Thumbnail:   project.Thumbnail,
-		}
+	if id, err := primitive.ObjectIDFromHex(project.ID); err == nil {
+		_, err := s.Database("MojSajt").Collection("projects").UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", updateFields}})
 
-		_, err = s.Database("MojSajt").Collection("projects").ReplaceOne(ctx, bson.D{{"_id", updatedProject.ID}}, updatedProject)
-		return project, err
+		return models.Project{}, err
 	} else {
 		return models.Project{}, ErrInvalidPostId
 	}
@@ -522,12 +534,13 @@ func (handler *MongodbHandler) GetProjects(ctx context.Context) ([]models.Projec
 
 	for _, mproject := range mprojects {
 		projects = append(projects, models.Project{
-			ID:          mproject.ID.Hex(),
-			Title:       mproject.Title,
-			Link:        mproject.Link,
-			Description: mproject.Description,
-			Thumbnail:   mproject.Thumbnail,
-			Timestamp:   mproject.Timestamp.Format("Jan/06/15"),
+			ID:                 mproject.ID.Hex(),
+			Title:              mproject.Title,
+			Link:               mproject.Link,
+			Description:        mproject.Description,
+			Thumbnail:          mproject.Thumbnail,
+			ThumbnailStretched: mproject.ThumbnailStretched,
+			Timestamp:          mproject.Timestamp.Format("Jan/06/15"),
 		})
 	}
 	return projects, err

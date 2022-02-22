@@ -89,7 +89,11 @@ func HandleShowcase(projects []models.Project, w io.Writer) {
                 `)
 		if project.Thumbnail != "" {
 			_buffer.WriteString(`
-                    <img class="project-image" src="/content/images/`)
+                    <img class="project-image `)
+			if project.ThumbnailStretched == true {
+				_buffer.WriteString(` stretched-image `)
+			}
+			_buffer.WriteString(`" src="/content/images/`)
 			hero.EscapeHTML(project.Thumbnail, _buffer)
 			_buffer.WriteString(`"/>
                 `)

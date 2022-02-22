@@ -111,6 +111,7 @@ function initTinyMCE() {
                     document.getElementById("post-description").value = "";
                     document.getElementById("post-thumbnail-image").src = "/content/no-image.png";
                     document.getElementById("post-thumbnail-name").value = "";
+                    document.getElementById("post-thumbnailstretched").value = "false";
                     document.getElementById("post-publish-date").innerHTML = "";
                     document.getElementById("post-hidden").value = "False";
                     document.getElementById("post-published").value = "False";
@@ -123,6 +124,7 @@ function initTinyMCE() {
                 var title = document.getElementById("title-" + select.value).innerHTML;
                 var description = document.getElementById("description-" + select.value).innerHTML;
                 var thumbnail = document.getElementById("thumbnail-" + select.value).innerHTML;
+                var thumbnailstretched = document.getElementById("thumbnailstretched-" + select.value).innerHTML;
                 var publishtimestamp = document.getElementById("publishtimestamp-" + select.value).innerHTML;
                 var lastedittimestamp = document.getElementById("lastedittimestamp-" + select.value).innerHTML;
                 var hidden = document.getElementById('hidden-' + select.value).innerHTML;
@@ -132,6 +134,7 @@ function initTinyMCE() {
                 console.log(he.decode(content))
                 console.log(title);
                 console.log(description);
+                console.log(thumbnailstretched);
                 console.log(published)
                 console.log(publishtimestamp)
                 editor.setContent(he.decode(content));
@@ -140,6 +143,7 @@ function initTinyMCE() {
                 document.getElementById("post-publish-date").innerHTML = publishtimestamp;
                 document.getElementById("post-last-edit-date").innerHTML = lastedittimestamp;
                 document.getElementById("post-thumbnail-name").value = thumbnail;
+                document.getElementById("post-thumbnailstretched").value = thumbnailstretched;
                 document.getElementById("post-hidden").value = hidden;
                 document.getElementById("post-published").innerHTML = published;
                 var thumbnailImg = document.getElementById("post-thumbnail-image");

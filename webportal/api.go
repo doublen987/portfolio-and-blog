@@ -380,6 +380,12 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 			}
 			post.Thumbnail = fileName
 
+			if req.FormValue("ThumbnailStretched") == "true" {
+				post.ThumbnailStretched = true
+			} else {
+				post.ThumbnailStretched = false
+			}
+
 			ctx := req.Context()
 			if selectedPostId == "" || selectedPostId == "None" {
 				err := db.AddPost(ctx, post)
@@ -492,24 +498,27 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 			req.ParseMultipartForm(10 << 20)
 
 			//2. retrieve file from posted form-data
+			var fileName string = ""
 			file, handler, err := req.FormFile("Thumbnail")
 			if err != nil {
 				fmt.Println("Error Retrieving file from form-data")
-				fmt.Println(err)
-				return
-			}
-			defer file.Close()
-			fmt.Printf("Uploaded File: %+v\n", handler.Filename)
-			fmt.Printf("File Size: %+v\n", handler.Size)
-			fmt.Printf("MIME Header: %+v\n", handler.Header)
-			fileBytes, err := ioutil.ReadAll(file)
-			if err != nil {
-				fmt.Println(err)
-			}
-
-			fileName, err := fh.AddFile(fileBytes, handler.Filename)
-			if err != nil {
-				fmt.Println(err)
+				fileName = req.FormValue("ThumbnailName")
+			} else {
+				defer file.Close()
+				fmt.Printf("Uploaded File: %+v\n", handler.Filename)
+				fmt.Printf("File Size: %+v\n", handler.Size)
+				fmt.Printf("MIME Header: %+v\n", handler.Header)
+				fileBytes, err := ioutil.ReadAll(file)
+				if err != nil {
+					fmt.Println("Error Reading file bytes:")
+					fmt.Println(err)
+				} else {
+					fileName, err = fh.AddFile(fileBytes, handler.Filename)
+					if err != nil {
+						fmt.Println("Error Adding File:")
+						fmt.Println(err)
+					}
+				}
 			}
 
 			selectedProjectId := req.FormValue("SelectedProject")
@@ -517,6 +526,12 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 			project.Description = req.FormValue("Description")
 			project.Link = req.FormValue("Link")
 			project.Thumbnail = fileName
+			fmt.Println(req.FormValue("ThumbnailStretched"))
+			if req.FormValue("ThumbnailStretched") == "true" {
+				project.ThumbnailStretched = true
+			} else {
+				project.ThumbnailStretched = false
+			}
 
 			ctx := req.Context()
 			if selectedProjectId == "" || selectedProjectId == "None" {

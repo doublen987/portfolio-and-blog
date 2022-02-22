@@ -22,6 +22,7 @@
                     <div id="description-<%=s post.ID %>" style="display:none;"><%=s post.Description %></div>
                     <div id="content-<%=s post.ID %>" style="display:none;"><%=s post.Content %></div>
                     <div id="thumbnail-<%=s post.ID %>" style="display:none;"><%=s post.Thumbnail %></div>
+                    <div id="thumbnailstretched-<%=s post.ID %>" style="display:none;"><%=b post.ThumbnailStretched %></div>
                     <div id="publishtimestamp-<%=s post.ID %>" style="display:none;"><%=s post.PublishTimestamp %></div>
                     <div id="lastedittimestamp-<%=s post.ID %>" style="display:none;"><%=s post.LastEditTimestamp %></div>
                     <div id="hidden-<%=s post.ID %>" style="display:none;"><%=b post.Hidden %></div>
@@ -39,6 +40,13 @@
             <div class="input-container">
                 <label for="post-thumbnail" class="editor-label">Thumbnail: </label>
                 <input name="Thumbnail" type="file" accept="image/*" id="post-thumbnail"></input>
+            </div>
+            <div class="label-container">
+                <div class="editor-label">Thumbnail stretched: </div>
+                <select name="ThumbnailStretched" id="post-thumbnailstretched" class="text" >
+                    <option id="post-thumbnailstretched-option-true" value="true">True</option>
+                    <option id="post-thumbnailstretched-option-false" value="false">False</option>
+                </select>
             </div>
             <div class="input-container">
                 <img id="post-thumbnail-image" src="/content/no-image.png">
