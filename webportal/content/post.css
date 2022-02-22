@@ -4,15 +4,19 @@
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: flex-start;
+    width: 100%;
 }
 .link-holder {
-    width: 300px;
-    
+    width: 30%;
+    max-width: 300px;
+    box-sizing: border-box;
 }
 
 .post-holder {
     padding-left: 10%;
     padding-right: 10%;
+    width: 70%;
+    box-sizing: border-box;
 }
 
 .post-title{
@@ -35,6 +39,7 @@
     font-size: 20px;
     text-shadow: 2px 2px 0 #26021d;
     text-align: left;
+    box-sizing: border-box;
 }
 
 .post-content a {
@@ -94,14 +99,24 @@ code {
     .link-holder {
         display: none;
     }
-    .post-content {
-
-    }
-}
-
-@media screen and (max-width: 520px) {
     .post-holder {
         padding-right: 0px;
         padding-left: 0px;
+        width: 90%;
+        margin: auto;
+        text-align: center;
+    }
+
+    .post-content {
+        padding-left: 10px;
+        padding-right: 10px;
+        width: 100%;
+    }
+}
+
+
+@media screen and (max-width: 400px) {
+    .post-title {
+        font-size: 40px;
     }
 }

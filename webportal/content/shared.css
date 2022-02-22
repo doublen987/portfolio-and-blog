@@ -108,19 +108,52 @@ svg:hover {
     position:fixed;
     height: 100%;
     width: 200px;
-    background-color: #33112b;
+    background-color: #26021d;
+    padding-top: 40px;
+    padding-left: 20px;
 }
 
 .modal-visible {
     visibility: visible;
+    
 }
 
 .modal-hidden {
     visibility: hidden;
 }
 
-@media screen and (max-width: 450px) {
+.modal-nav-items {
+    text-decoration: none;
+}
+
+.modal-nav-item a{
+    color: #fbc23f;
+    font-family: 'Bangers', cursive;
+    font-size: 25px;
+    text-decoration: none;
+}
+
+.modal-social {
+    display: inline;
+}
+
+
+@media screen and (max-width: 400px) {
     .nav-items {
         display: none;
+    }
+
+    #modal {
+        width: 100%;
+        text-align: center;
+    }
+
+    .modal-social svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .modal-nav-item a{
+        font-size: 40px;
     }
 }

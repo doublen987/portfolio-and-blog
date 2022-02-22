@@ -5,6 +5,12 @@
     text-shadow: 4px 4px 0 #33112b;
 }
 
+@media screen and (max-width: 600px) {
+    .homepage-heading {
+        font-size: 60px;
+    }
+}
+
 .homepage-content {
     color: #d08a12;
     font-family: "Bangers", "cursive";
@@ -44,7 +50,20 @@
 .icon-list {
     display: inline-flex;
     align-items: flex-start;
+    width: 80%;
+    overflow-x: scroll;
 }
+
+.icon-list::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .icon-list {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
 
 .tech-icon {
     width: 50px;

@@ -56,3 +56,8 @@
     border-color: #fbc23f;
 }
 
+@media screen and (max-width: 530px) {
+    .post-card {
+        width: 100%;
+    }
+}
