@@ -81,7 +81,7 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 		log.Fatal(err)
 	}
 
-	if authenticated, err := db.Authenticate(context.Background(), "admin", "admin"); authenticated == false {
+	if users, err := db.GetUsers(context.Background()); len(users) == 0 {
 		err = db.AddUser(context.Background(), models.User{Username: "admin", Password: "admin", Description: ""})
 		if err != nil {
 			fmt.Println(err)
