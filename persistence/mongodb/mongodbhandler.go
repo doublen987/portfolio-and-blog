@@ -380,6 +380,13 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 		}
 	}
 
+	if ctx.Value("published") == true {
+		filter["published"] = true
+	}
+	if ctx.Value("hidden") == false {
+		filter["hidden"] = false
+	}
+
 	mposts := []MongoPost{}
 	posts := []models.Post{}
 	cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, filter, findOptions)
@@ -406,7 +413,19 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 }
 func (handler *MongodbHandler) GetPostsCount(ctx context.Context) (int64, error) {
 	s := handler.Session
-	count, err := s.Database("MojSajt").Collection("posts").CountDocuments(ctx, bson.M{})
+
+	filter := bson.M{}
+
+	published := ctx.Value("published")
+	if published == true {
+		filter["published"] = true
+	}
+	hidden := ctx.Value("hidden")
+	if hidden == false {
+		filter["hidden"] = false
+	}
+
+	count, err := s.Database("MojSajt").Collection("posts").CountDocuments(ctx, filter)
 	if err != nil {
 		fmt.Println(err)
 	}

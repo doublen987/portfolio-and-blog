@@ -373,9 +373,9 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 			post.Title = req.FormValue("Title")
 			post.Description = req.FormValue("Description")
 			post.Content = req.FormValue("Content")
-			if req.FormValue("Hidden") == "True" {
+			if req.FormValue("Hidden") == "true" {
 				post.Hidden = true
-			} else if req.FormValue("Hidden") == "False" {
+			} else {
 				post.Hidden = false
 			}
 			post.Thumbnail = fileName
@@ -753,6 +753,9 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 		// }
 
 		newCtx := req.Context()
+
+		newCtx = context.WithValue(newCtx, "published", true)
+		newCtx = context.WithValue(newCtx, "hidden", false)
 
 		if searchTerm := req.URL.Query().Get("search"); searchTerm != "" {
 			newCtx = context.WithValue(newCtx, "search-term", searchTerm)
