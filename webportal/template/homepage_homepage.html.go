@@ -133,7 +133,7 @@ func Homepage(header, message string, w io.Writer) {
             <h3 class="homepage-heading">Qualifications</h3>
             <ul>
                 <li class="homepage-qualifications">High school degree from Belgrade's 14th gimnasium</li>
-                <li class="homepage-qualifications">3rd year bachelor's degree at the University of Belgrade</li>
+                <li class="homepage-qualifications">3rd year of a 4 year bachelor's degree at the University of Belgrade</li>
                 <li class="homepage-qualifications">Can speak English and Serbian fluently</li>
             </ul>
         </div>

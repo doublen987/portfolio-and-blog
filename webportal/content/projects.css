@@ -2,7 +2,7 @@
     display: inline-block;
     background-color: #33112b;
     width: 300px;
-    height: 300px;
+    height: 350px;
     overflow: hidden;
 }
 
@@ -33,4 +33,40 @@
 .card-containter{
     text-align: center;
     width: 100%;
+}
+
+.project-description {
+    height: 50px;
+    margin: 10px;
+    margin-top: 0px;
+    overflow-y: hidden;
+}
+
+.project-link {
+    text-align: center;
+    color: #d08a12;
+    fill: #d08a12;
+}
+
+.project-link a {
+    display: inline-block; 
+    vertical-align: middle;
+    font-size: 20px;
+    text-decoration: none;
+    color: #d08a12;
+    
+}
+
+.project-link a:hover {
+    text-decoration: none;
+    color: #fbc23f;
+    fill: #fbc23f;
+}
+
+.project-github-link {
+    fill: inherit;
+}
+
+.project-github-link:hover {
+    fill: inherit;
 }
