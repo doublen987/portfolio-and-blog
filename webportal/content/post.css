@@ -12,6 +12,14 @@
     box-sizing: border-box;
 }
 
+.link-holder li {
+    color: #d08a12;
+}
+
+.link-holder li:hover {
+    color: #fbc23f;
+}
+
 .post-holder {
     padding-left: 10%;
     padding-right: 10%;
@@ -51,7 +59,7 @@
 }
 
 .post-link {
-    color: #d08a12;
+    color: inherit;
     font-family: "Bangers", "cursive";
     font-size: 20px;
     text-shadow: 2px 2px 0 #26021d;
