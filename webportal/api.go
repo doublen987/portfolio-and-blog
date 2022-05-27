@@ -140,6 +140,34 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 		http.Redirect(w, req, "/", http.StatusFound)
 	})
 
+	r.PathPrefix("/dashboard").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// defer req.Body.Close()
+		// vars := mux.Vars(req)
+		// postID := vars["postID"]
+		// ctx := req.Context()
+		// post, err := db.GetPost(ctx, postID)
+		// if err != nil {
+		// 	http.Error(w, err.Error(), http.StatusNotFound)
+		// 	return
+		// }
+		// ctx := req.Context()
+		// users, err := db.GetUsers(ctx)
+		// if err != nil {
+		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+		// 	return
+		// }
+		socialLinks := map[string]string{
+			"github":   "https://github.com/doublen987",
+			"linkedin": "https://www.linkedin.com/in/nikola-nesovic-24214219a/",
+			"email":    "doublen987@gmail.com",
+		}
+		template.HandleEditSettings(socialLinks, w)
+	})))
+
+	r.PathPrefix("/dashboard").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+	})))
+
 	// r.PathPrefix("/blog/edit/{postID}").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 	// 	defer req.Body.Close()
 	// 	vars := mux.Vars(req)

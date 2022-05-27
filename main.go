@@ -32,6 +32,7 @@ func startServer() {
 	address := config.Host + ":" + config.Port
 	tlsaddress := config.Host + ":" + config.PortTLS
 	log.Println("Starting web server on addres: ", address)
+	log.Println("Connecting to database: ", config.DBConnection)
 
 	httpErrChan, httpIsErrChan := webportal.RunAPI(config.Databasetype, address, tlsaddress, config.DBConnection, config.FileStorageType)
 	for true {
