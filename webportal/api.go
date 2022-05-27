@@ -791,7 +791,7 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 			newCtx = context.WithValue(newCtx, "search-term", "")
 		}
 
-		var currentPage int
+		var currentPage int = 1
 
 		if page := req.URL.Query().Get("page"); page != "" {
 			newCtx = context.WithValue(newCtx, "page", page)
@@ -801,7 +801,7 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 				return
 			}
 		} else {
-			newCtx = context.WithValue(newCtx, "page", "")
+			newCtx = context.WithValue(newCtx, "page", "1")
 		}
 
 		postsCount, err := db.GetPostsCount(newCtx)
@@ -820,7 +820,7 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 			http.Redirect(w, req, "/blog?page=1", http.StatusSeeOther)
 			return
 		}
-		if currentPage > int(numOfPages) {
+		if currentPage > int(numOfPages) && int(numOfPages) != 0 {
 			http.Redirect(w, req, fmt.Sprintf("/blog?page=%d", numOfPages), http.StatusSeeOther)
 			return
 		}
