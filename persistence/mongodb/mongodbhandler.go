@@ -599,9 +599,20 @@ func (handler *MongodbHandler) GetLinks(ctx context.Context) ([]models.Link, err
 	// 	return []models.Link{}, err
 	// }
 
+	filter := bson.M{}
+
+	published := ctx.Value("published")
+	if published == true {
+		filter["published"] = true
+	}
+	hidden := ctx.Value("hidden")
+	if hidden == false {
+		filter["hidden"] = false
+	}
+
 	mlinks := []MongoLink{}
 	links := []models.Link{}
-	cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, bson.D{})
+	cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, filter)
 	cursor.All(ctx, &mlinks)
 	cursor.Close(ctx)
 	for _, mlink := range mlinks {

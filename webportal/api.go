@@ -744,12 +744,15 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 	r.PathPrefix("/blog/{postID}").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		ctx := req.Context()
+
 		post, err := db.GetPost(ctx, vars["postID"])
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		ctx = context.WithValue(ctx, "published", true)
+		ctx = context.WithValue(ctx, "hidden", false)
 		links, err := db.GetLinks(ctx)
 		if err != nil {
 			fmt.Println(err)
