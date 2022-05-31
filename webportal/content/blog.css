@@ -30,13 +30,19 @@
 }
 
 .post-card-description{
-    height: 100px;
+    height: 3.1em;
     color: #d08a12;
     font-family: "Bangers", "cursive";
-    font-size: 25px;
+    font-size: 20px;
     text-shadow: 2px 2px 0 #26021d;
     text-align: center;
-    padding: 20px 20px 20px 20px;
+    padding: 0px 20px 0px 20px; 
+    position: absolute;
+    width: 100%;
+    left: 0px;
+    bottom: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .page-buttons-container {
