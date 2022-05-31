@@ -32,6 +32,10 @@ function initTinyMCE() {
         toolbar: 'codesample',
         automatic_uploads: true,
         images_upload_url: '/content/images',
+        image_dimensions: false,
+        image_class_list: [
+            {title: 'Responsive', value: 'img-responsive'}
+        ],
         relative_urls: false,
         file_picker_callback: function (cb, value, meta) {
             var input = document.createElement('input');

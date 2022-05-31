@@ -84,6 +84,10 @@ code {
     font-size: 16px;
 }
 
+.img-responsive {
+    width: 100%;
+}
+
 ::-webkit-scrollbar {
     width: 10px;
   }
