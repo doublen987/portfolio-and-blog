@@ -439,10 +439,19 @@ func (handler *MongodbHandler) GetPost(ctx context.Context, id string) (models.P
 	// 	return models.Post{}, err
 	// }
 
+	filter := bson.M{}
+	if ctx.Value("published") == true {
+		filter["published"] = true
+	}
+	if ctx.Value("hidden") == false {
+		filter["hidden"] = false
+	}
+
 	post := models.Post{}
 	mpost := MongoPost{}
 	if oid, err := primitive.ObjectIDFromHex(id); err == nil {
-		cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, bson.D{{"_id", oid}})
+		filter["_id"] = oid
+		cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, filter)
 		defer cursor.Close(ctx)
 		if cursor.Next(ctx) {
 			err = cursor.Decode(&mpost)

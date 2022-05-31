@@ -745,14 +745,15 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 		vars := mux.Vars(req)
 		ctx := req.Context()
 
+		ctx = context.WithValue(ctx, "published", true)
+		ctx = context.WithValue(ctx, "hidden", false)
 		post, err := db.GetPost(ctx, vars["postID"])
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		ctx = context.WithValue(ctx, "published", true)
-		ctx = context.WithValue(ctx, "hidden", false)
+
 		links, err := db.GetLinks(ctx)
 		if err != nil {
 			fmt.Println(err)
