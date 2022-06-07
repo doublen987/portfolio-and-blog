@@ -16,6 +16,8 @@ var (
 	StoragePathDefault         = "images"
 	HostDefault                = ""
 	PortDefault                = "80"
+	CertPEM                    = "cert.pem"
+	KeyPEM                     = "key.pem"
 	HostTLSDefault             = ""
 	TLSPortDefault             = "443"
 	MessageBrokerTypeDefault   = "amqp"
@@ -30,6 +32,8 @@ type ServiceConfig struct {
 	Storagepath         string   `json:"storagepath"`
 	Host                string   `json:"host"`
 	Port                string   `json:"port"`
+	CertPEM             string   `json:"cert_pem"`
+	KeyPEM              string   `json:"key_pem"`
 	HostTLS             string   `json:"host_tls"`
 	PortTLS             string   `json:"port_tls"`
 	MessageBrokerType   string   `json:"message_broker_type"`
@@ -45,6 +49,8 @@ func ExtractConfiguration(filename string) (ServiceConfig, error) {
 		StoragePathDefault,
 		HostDefault,
 		PortDefault,
+		CertPEM,
+		KeyPEM,
 		HostTLSDefault,
 		TLSPortDefault,
 		MessageBrokerTypeDefault,
@@ -70,6 +76,12 @@ func ExtractConfiguration(filename string) (ServiceConfig, error) {
 	}
 	if portTLS := os.Getenv("TLS_PORT"); portTLS != "" {
 		conf.PortTLS = portTLS
+	}
+	if CertPEM := os.Getenv("CERT_PEM"); CertPEM != "" {
+		conf.CertPEM = CertPEM
+	}
+	if KeyPEM := os.Getenv("KEY_PEM"); KeyPEM != "" {
+		conf.KeyPEM = KeyPEM
 	}
 	if DBType := os.Getenv("DB_TYPE"); DBType != "" {
 		if i, err := strconv.ParseUint(DBType, 10, 8); err != nil {

@@ -73,7 +73,7 @@ func Middleware(next http.Handler) http.Handler {
 	})
 }
 
-func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection string, filestoragetype string) (chan error, chan error) {
+func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint string, dbconnection string, filestoragetype string) (chan error, chan error) {
 	r := mux.NewRouter()
 	db, err := persistence.GetDataBaseHandler(dbtype, dbconnection)
 	fh, err := persistence.GetFileHandler(filestoragetype, "")
@@ -912,7 +912,7 @@ func RunAPI(dbtype uint8, endpoint string, tlsendpoint string, dbconnection stri
 	httpErrChan := make(chan error)
 	httpIsErrChan := make(chan error)
 
-	go func() { httpIsErrChan <- http.ListenAndServeTLS(tlsendpoint, "cert.pem", "key.pem", r) }()
+	go func() { httpIsErrChan <- http.ListenAndServeTLS(tlsendpoint, cert, key, r) }()
 	go func() { httpErrChan <- http.ListenAndServe(endpoint, r) }()
 
 	return httpErrChan, httpIsErrChan
