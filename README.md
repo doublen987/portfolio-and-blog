@@ -10,7 +10,7 @@ Set up your portfolio site in minutes, all for free. Built with Go, MongoDB and 
   - Showcase your projects with the projects page.
   - Responsive design
 
-      ![Imgur](https://i.imgur.com/0fj4Z11.gif)
+      ![Imgur](https://i.imgur.com/vOJpeFy.gif)
 
 ## Upcoming features:
   - Page editing
