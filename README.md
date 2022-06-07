@@ -1,5 +1,5 @@
 
-<p align="center"><a href="https://github.com/doublen987/flashcards-app" target="_blank" rel="noopener noreferrer"><img width="100" src="https://svgshare.com/i/i5V.svg" alt="Flashful logo"></a></p>
+<p align="center"><a href="https://github.com/doublen987/portfolio-and-blog" target="_blank" rel="noopener noreferrer"><img width="100" src="https://svgshare.com/i/i5V.svg" alt="Flashful logo"></a></p>
 
 
 # Eternal - A CMS for managing your portfolio, blog and projects
