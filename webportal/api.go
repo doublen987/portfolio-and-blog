@@ -867,8 +867,6 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 
 		fileextension := s[len(s)-1]
 
-		fmt.Println(fileextension)
-
 		switch fileextension {
 		case "svg":
 			fmt.Println(fileextension)
@@ -911,6 +909,9 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 
 	httpErrChan := make(chan error)
 	httpIsErrChan := make(chan error)
+
+	fmt.Println("Cert.pem location: " + cert)
+	fmt.Println("Key.pem location: " + key)
 
 	go func() { httpIsErrChan <- http.ListenAndServeTLS(tlsendpoint, cert, key, r) }()
 	go func() { httpErrChan <- http.ListenAndServe(endpoint, r) }()
