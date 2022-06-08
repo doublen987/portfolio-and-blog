@@ -869,7 +869,6 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 
 		switch fileextension {
 		case "svg":
-			fmt.Println(fileextension)
 			w.Header().Set("content-type", "image/svg+xml")
 			break
 		default:
