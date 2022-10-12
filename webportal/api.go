@@ -377,6 +377,176 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 
 	})))
 
+	r.PathPrefix("/tag/edit").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// defer req.Body.Close()
+		// vars := mux.Vars(req)
+		// postID := vars["postID"]
+		// ctx := req.Context()
+		// post, err := db.GetPost(ctx, postID)
+		// if err != nil {
+		// 	http.Error(w, err.Error(), http.StatusNotFound)
+		// 	return
+		// }
+		//ctx := req.Context()
+		tags := []models.Tag{}
+		tags = append(tags,
+			models.Tag{
+				Name:  "MongoDB",
+				Image: "",
+			},
+			models.Tag{
+				Name:  "Golang",
+				Image: "",
+			},
+			models.Tag{
+				Name:  "AWS",
+				Image: "",
+			},
+		)
+		// tags, err := db.GetTags(ctx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		template.HandleEditTag(tags, w)
+	})))
+
+	r.PathPrefix("/tag/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		defer req.Body.Close()
+		method := req.FormValue("Send")
+
+		if method == "POST" {
+			post := models.Post{}
+			posts := []models.Post{}
+			// if err := json.NewDecoder(req.Body).Decode(post); err != nil {
+			// 	http.Error(w, err.Error(), http.StatusBadRequest)
+			// 	return
+			// }
+
+			//1. parse input, type multipart/form-data
+			//ParseMultipartForm parses a request body as multipart/form-data. The whole request body is parsed and up to a
+			//total of maxMemory bytes of its file parts are stored in memory, with the remainder stored on disk in temporary
+			//files. ParseMultipartForm calls ParseForm if necessary. After one call to ParseMultipartForm, subsequent calls
+			//have no effect.
+			req.ParseMultipartForm(10 << 20)
+
+			//2. retrieve file from posted form-data
+			var fileName string = ""
+			file, handler, err := req.FormFile("Thumbnail")
+
+			if err != nil {
+				fmt.Println("Error Retrieving thumbnail from request:")
+				fmt.Println(err)
+				fileName = req.FormValue("ThumbnailName")
+			} else {
+				defer file.Close()
+				fmt.Printf("Uploaded File: %+v\n", handler.Filename)
+				fmt.Printf("File Size: %+v\n", handler.Size)
+				fmt.Printf("MIME Header: %+v\n", handler.Header)
+				fileBytes, err := ioutil.ReadAll(file)
+				if err != nil {
+					fmt.Println("Error Reading file bytes:")
+					fmt.Println(err)
+				} else {
+					fileName, err = fh.AddFile(fileBytes, handler.Filename)
+					if err != nil {
+						fmt.Println("Error Adding File:")
+						fmt.Println(err)
+					}
+				}
+
+			}
+
+			selectedPostId := req.FormValue("SelectedPost")
+			post.Title = req.FormValue("Title")
+			post.Description = req.FormValue("Description")
+			post.Content = req.FormValue("Content")
+			if req.FormValue("Hidden") == "true" {
+				post.Hidden = true
+			} else {
+				post.Hidden = false
+			}
+			post.Thumbnail = fileName
+
+			if req.FormValue("ThumbnailStretched") == "true" {
+				post.ThumbnailStretched = true
+			} else {
+				post.ThumbnailStretched = false
+			}
+
+			ctx := req.Context()
+			if selectedPostId == "" || selectedPostId == "None" {
+				err := db.AddPost(ctx, post)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			} else {
+				post.ID = selectedPostId
+				_, err := db.UpdatePost(ctx, post)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			posts, err = db.GetPosts(ctx)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			fmt.Println(post.Title)
+			fmt.Println(post.Content)
+
+			template.HandleEditPost(posts, w)
+		}
+		if method == "DELETE" {
+			selectedPostId := req.FormValue("SelectedPost")
+			fmt.Printf("Deleting post: $s\n", selectedPostId)
+
+			ctx := req.Context()
+			if selectedPostId != "" && selectedPostId != "None" {
+				err := db.RemovePost(ctx, selectedPostId)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			posts, err := db.GetPosts(ctx)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			fmt.Printf("Deleted post: $s\n", selectedPostId)
+			template.HandleEditPost(posts, w)
+		}
+		if method == "PUBLISH" {
+			selectedPostId := req.FormValue("SelectedPost")
+			fmt.Printf("Publishing post: $s\n", selectedPostId)
+
+			ctx := req.Context()
+			if selectedPostId != "" && selectedPostId != "None" {
+				err := db.PublishPost(ctx, selectedPostId)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+
+			posts, err := db.GetPosts(ctx)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			fmt.Printf("Published post: $s\n", selectedPostId)
+			template.HandleEditPost(posts, w)
+		}
+
+	})))
+
 	r.PathPrefix("/users/edit").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// defer req.Body.Close()
 		// vars := mux.Vars(req)

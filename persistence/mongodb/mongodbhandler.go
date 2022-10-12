@@ -705,3 +705,73 @@ func (handler *MongodbHandler) RemoveKnowledgeTimelineEvent(ctx context.Context,
 		return err
 	}
 }
+func (handler *MongodbHandler) AddTag(ctx context.Context, user models.Tag) error {
+	s := handler.Session
+
+	//newID := primitive.NewObjectID()
+
+	_, err := s.Database("MojSajt").Collection("tags").InsertOne(ctx, user)
+	return err
+}
+func (handler *MongodbHandler) RemoveTag(ctx context.Context, tagID string) error {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+	// if err != nil {
+	// 	return err
+	// }
+
+	//if oid, err := primitive.ObjectIDFromHex(userID); err == nil {
+	_, err := s.Database("MojSajt").Collection("tags").DeleteOne(ctx, bson.D{{"id", tagID}})
+	return err
+	// } else {
+	// 	return err
+	// }
+}
+func (handler *MongodbHandler) UpdateTag(ctx context.Context, tag models.Tag) error {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+	// if err != nil {
+	// 	return models.Post{}, err
+	// }
+	var updateFields bson.D
+
+	var fields map[string]interface{}
+	fields = make(map[string]interface{})
+	fields["name"] = tag.Name
+	fields["content"] = tag.Content
+	fields["description"] = tag.Description
+	fields["thumbnail"] = tag.Thumbnail
+	fields["thumbnailstretched"] = tag.ThumbnailStretched
+
+	// for key, value := range fields {
+	// 	updateFields = append(updateFields, bson.E{key, value})
+	// }
+
+	// fmt.Println(primitive.ObjectIDFromHex(user.ID))
+	// if id, err := primitive.ObjectIDFromHex(user.ID); err == nil {
+	_, err := s.Database("MojSajt").Collection("users").UpdateOne(ctx, bson.D{{"_id", tag.ID}}, bson.D{{"$set", updateFields}})
+
+	return err
+	// } else {
+	// 	return ErrInvalidPostId
+	// }
+}
+func (handler *MongodbHandler) GetTags(ctx context.Context) ([]models.Tag, error) {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+
+	filter := bson.M{}
+	findOptions := options.Find()
+
+	tags := []models.Tag{}
+	cursor, err := s.Database("MojSajt").Collection("tags").Find(ctx, filter, findOptions)
+	if err != nil {
+		return tags, err
+	}
+	cursor.All(ctx, &tags)
+	defer cursor.Close(ctx)
+	return tags, err
+}

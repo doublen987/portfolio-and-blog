@@ -46,6 +46,10 @@ type DBHandler interface {
 	AddKnowledgeTimelineEvent(ctx context.Context, event models.TimelineEvent) error
 	UpdateKnowledgeTimelineEvent(ctx context.Context, event models.TimelineEvent) (models.TimelineEvent, error)
 	RemoveKnowledgeTimelineEvent(ctx context.Context, id string) error
+	AddTag(ctx context.Context, tag models.Tag) error
+	RemoveTag(ctx context.Context, tagID string) error
+	UpdateTag(ctx context.Context, tag models.Tag) error
+	GetTags(ctx context.Context) ([]models.Tag, error)
 }
 
 var DBTypeNotSupported = errors.New("The Database type provided is not supported...")
