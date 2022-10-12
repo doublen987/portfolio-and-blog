@@ -44,8 +44,59 @@ type Link struct {
 }
 
 type TimelineEvent struct {
-	ID          string `bson:"_id", json"id"`
+	ID          string `bson:"_id", json:"id"`
 	Title       string `bson:"title", json:"title"`
 	Description string `bson:"description", json:"description"`
 	Image       string `bson:"image", json:"image"`
+}
+
+type Tag struct {
+	ID    string `bson:"_id", json:"id"`
+	Name  string `bson:"header, json:"header"`
+	Image string `bson:"image", json:"image"`
+}
+
+type PageSection interface {
+	GetType() string
+	GetID() string
+}
+
+type TextSection struct {
+	ID      string `bson:"_id", json:"id"`
+	Header  string `bson:"header, json:"header"`
+	Content string `bson:"content", json:"content"`
+}
+
+func (ts TextSection) GetType() string {
+	return "text"
+}
+
+func (ss TextSection) GetID() string {
+	return ss.ID
+}
+
+type ImageSection struct {
+	ID    string `bson:"_id", json:"id"`
+	Image string `bson:"image, json:"image"`
+}
+
+func (is ImageSection) GetType() string {
+	return "image"
+}
+
+func (ss ImageSection) GetID() string {
+	return ss.ID
+}
+
+type StackSection struct {
+	ID   string `bson:"_id", json:"id"`
+	Tags []Tag  `bson:"tags, json:"tags"`
+}
+
+func (ss StackSection) GetType() string {
+	return "stack"
+}
+
+func (ss StackSection) GetID() string {
+	return ss.ID
 }

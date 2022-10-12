@@ -1,0 +1,49 @@
+.sections-header {
+    font-family: "Bangers", "cursive";
+    color: #d08a12;
+    font-size: 30px;
+    margin-bottom: 30px;
+}
+
+#homepage-section-type-modal {
+    display: none;
+    background-color: black;
+    color: white;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.homepage-section-editor {
+    display: none;
+}
+
+.homepage-section-preview {
+    display: unset;
+}
+
+
+.homepage-section-preview-header {
+    font-family: "Bangers", "cursive";
+    color: #d08a12;
+    font-size: 20px;
+}
+
+
+.homepage-section-preview-content{
+    font-family: "Bangers", "cursive";
+    font-size: 20px;
+    color: #fbc23f;
+}
+
+.section-image-input-label {
+    font-family: "Bangers", "cursive";
+    font-size: 20px;
+    color: #fbc23f;
+}
+
+.homepage-section-image {
+    width: 100px;
+    height: 100px;
+}

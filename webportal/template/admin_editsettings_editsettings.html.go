@@ -32,6 +32,7 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
     <link rel="stylesheet" href="/content/post.css">
     <link rel="stylesheet" href="/content/editor.css">
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
+    <link rel="stylesheet" href="/content/edithomepage.css">
     <script src="/content/js/nav.js"></script>
 </head>
 <body>

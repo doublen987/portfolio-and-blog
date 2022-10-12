@@ -33,6 +33,7 @@ func HandlePost(links []models.Link, post models.Post, w io.Writer) {
     <link rel="stylesheet" href="/content/post.css">
     <link rel="stylesheet" href="/content/editor.css">
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
+    <link rel="stylesheet" href="/content/edithomepage.css">
     <script src="/content/js/nav.js"></script>
 </head>
 <body>
