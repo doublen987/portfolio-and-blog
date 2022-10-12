@@ -51,11 +51,10 @@ type TimelineEvent struct {
 }
 
 type Tag struct {
-	ID                 string `bson:"_id" json:"id"`
+	ID                 string `bson:"ID" json:"ID"`
 	Name               string `bson:"header" json:"header"`
 	Content            string `bson:"content" json:"content"`
 	Description        string `bson:"description" json:"descrtiption"`
-	Image              string `bson:"image" json:"image"`
 	Thumbnail          string `bson:"thumbnail" json:"thumbnail"`
 	ThumbnailStretched bool   `bson:"thumbnailstretched" json:"thumbnailstretched"`
 }

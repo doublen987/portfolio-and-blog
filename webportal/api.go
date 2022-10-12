@@ -220,8 +220,8 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 
 		tags := []models.Tag{}
 		tags = append(tags, models.Tag{
-			Name:  "MongoDB",
-			Image: "",
+			Name:      "MongoDB",
+			Thumbnail: "",
 		})
 
 		sections := []models.PageSection{}
@@ -391,16 +391,16 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		tags := []models.Tag{}
 		tags = append(tags,
 			models.Tag{
-				Name:  "MongoDB",
-				Image: "",
+				Name:      "MongoDB",
+				Thumbnail: "",
 			},
 			models.Tag{
-				Name:  "Golang",
-				Image: "",
+				Name:      "Golang",
+				Thumbnail: "",
 			},
 			models.Tag{
-				Name:  "AWS",
-				Image: "",
+				Name:      "AWS",
+				Thumbnail: "",
 			},
 		)
 		// tags, err := db.GetTags(ctx)
@@ -416,8 +416,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		method := req.FormValue("Send")
 
 		if method == "POST" {
-			post := models.Post{}
-			posts := []models.Post{}
+			tag := models.Tag{}
 			// if err := json.NewDecoder(req.Body).Decode(post); err != nil {
 			// 	http.Error(w, err.Error(), http.StatusBadRequest)
 			// 	return
@@ -457,92 +456,66 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 
 			}
 
-			selectedPostId := req.FormValue("SelectedPost")
-			post.Title = req.FormValue("Title")
-			post.Description = req.FormValue("Description")
-			post.Content = req.FormValue("Content")
-			if req.FormValue("Hidden") == "true" {
-				post.Hidden = true
-			} else {
-				post.Hidden = false
-			}
-			post.Thumbnail = fileName
+			selectedTagId := req.FormValue("SelectedTag")
+			tag.Name = req.FormValue("Name")
+			tag.Description = req.FormValue("Description")
+			tag.Content = req.FormValue("Content")
+			tag.Thumbnail = fileName
 
 			if req.FormValue("ThumbnailStretched") == "true" {
-				post.ThumbnailStretched = true
+				tag.ThumbnailStretched = true
 			} else {
-				post.ThumbnailStretched = false
+				tag.ThumbnailStretched = false
 			}
 
 			ctx := req.Context()
-			if selectedPostId == "" || selectedPostId == "None" {
-				err := db.AddPost(ctx, post)
+			if selectedTagId == "" || selectedTagId == "None" {
+				err := db.AddTag(ctx, tag)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
 			} else {
-				post.ID = selectedPostId
-				_, err := db.UpdatePost(ctx, post)
+				tag.ID = selectedTagId
+				err := db.UpdateTag(ctx, tag)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
 			}
 
-			posts, err = db.GetPosts(ctx)
+			tags, err := db.GetTags(ctx)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			fmt.Println(post.Title)
-			fmt.Println(post.Content)
+			fmt.Println(tag.Name)
+			fmt.Println(tag.Content)
 
-			template.HandleEditPost(posts, w)
+			template.HandleEditTag(tags, w)
 		}
 		if method == "DELETE" {
-			selectedPostId := req.FormValue("SelectedPost")
-			fmt.Printf("Deleting post: $s\n", selectedPostId)
+			selectedTagId := req.FormValue("SelectedTag")
+			fmt.Printf("Deleting post: $s\n", selectedTagId)
 
 			ctx := req.Context()
-			if selectedPostId != "" && selectedPostId != "None" {
-				err := db.RemovePost(ctx, selectedPostId)
+			if selectedTagId != "" && selectedTagId != "None" {
+				err := db.RemoveTag(ctx, selectedTagId)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
 			}
 
-			posts, err := db.GetPosts(ctx)
+			tags, err := db.GetTags(ctx)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			fmt.Printf("Deleted post: $s\n", selectedPostId)
-			template.HandleEditPost(posts, w)
-		}
-		if method == "PUBLISH" {
-			selectedPostId := req.FormValue("SelectedPost")
-			fmt.Printf("Publishing post: $s\n", selectedPostId)
-
-			ctx := req.Context()
-			if selectedPostId != "" && selectedPostId != "None" {
-				err := db.PublishPost(ctx, selectedPostId)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-
-			posts, err := db.GetPosts(ctx)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			fmt.Printf("Published post: $s\n", selectedPostId)
-			template.HandleEditPost(posts, w)
+			fmt.Printf("Deleted tag: $s\n", selectedTagId)
+			template.HandleEditTag(tags, w)
 		}
 
 	})))

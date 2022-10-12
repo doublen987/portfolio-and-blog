@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/doublen987/Projects/MySite/server/persistence/models"
+	"github.com/rs/xid"
 )
 
 var (
@@ -705,12 +706,14 @@ func (handler *MongodbHandler) RemoveKnowledgeTimelineEvent(ctx context.Context,
 		return err
 	}
 }
-func (handler *MongodbHandler) AddTag(ctx context.Context, user models.Tag) error {
+func (handler *MongodbHandler) AddTag(ctx context.Context, tag models.Tag) error {
 	s := handler.Session
 
 	//newID := primitive.NewObjectID()
+	guid := xid.New()
+	tag.ID = guid.String()
 
-	_, err := s.Database("MojSajt").Collection("tags").InsertOne(ctx, user)
+	_, err := s.Database("MojSajt").Collection("tags").InsertOne(ctx, tag)
 	return err
 }
 func (handler *MongodbHandler) RemoveTag(ctx context.Context, tagID string) error {
@@ -722,7 +725,7 @@ func (handler *MongodbHandler) RemoveTag(ctx context.Context, tagID string) erro
 	// }
 
 	//if oid, err := primitive.ObjectIDFromHex(userID); err == nil {
-	_, err := s.Database("MojSajt").Collection("tags").DeleteOne(ctx, bson.D{{"id", tagID}})
+	_, err := s.Database("MojSajt").Collection("tags").DeleteOne(ctx, bson.D{{"ID", tagID}})
 	return err
 	// } else {
 	// 	return err
@@ -751,7 +754,7 @@ func (handler *MongodbHandler) UpdateTag(ctx context.Context, tag models.Tag) er
 
 	// fmt.Println(primitive.ObjectIDFromHex(user.ID))
 	// if id, err := primitive.ObjectIDFromHex(user.ID); err == nil {
-	_, err := s.Database("MojSajt").Collection("users").UpdateOne(ctx, bson.D{{"_id", tag.ID}}, bson.D{{"$set", updateFields}})
+	_, err := s.Database("MojSajt").Collection("tags").UpdateOne(ctx, bson.D{{"ID", tag.ID}}, bson.D{{"$set", updateFields}})
 
 	return err
 	// } else {

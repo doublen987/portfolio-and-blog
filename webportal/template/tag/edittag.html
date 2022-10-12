@@ -1,0 +1,67 @@
+<%: func HandleEditTag(tags []models.Tag, w io.Writer)%>
+<%~ "index.html" %>
+<%@ body { %>
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/content/js/he.js"></script>
+    <script src="/content/js/edittag.js"></script>
+
+    <div class="editor-container">
+        <form id="form1" action="/tag/edit" enctype="multipart/form-data" method="POST">
+            <div class="input-container">
+                <label for="SelectedTag" class="editor-label">Choose a post:</label>
+                <select name="SelectedTag" id="chosen-tag" class="editor-select">
+                    <option value="None">New tag</option>
+                    <% for _, tag := range tags { %>
+                        <option value="<%=s tag.ID %>"><%=s tag.Name %></option>
+                        
+                    <% } %>
+                </select>
+                <% for _, tag := range tags { %>
+                    <div id="name-<%=s tag.ID %>" style="display:none;"><%=s tag.Name %></div>
+                    <div id="description-<%=s tag.ID %>" style="display:none;"><%=s tag.Description %></div>
+                    <div id="content-<%=s tag.ID %>" style="display:none;"><%=s tag.Content %></div>
+                    <div id="thumbnail-<%=s tag.ID %>" style="display:none;"><%=s tag.Thumbnail %></div>
+                    <div id="thumbnailstretched-<%=s tag.ID %>" style="display:none;"><%=b tag.ThumbnailStretched %></div>
+                <% } %>
+            </div>
+            <div class="input-container">
+                <label for="tag-name" class="editor-label">Name: </label>
+                <input name="Name" id="tag-name" class="editor-input"></input>
+            </div>
+            <div class="input-container">
+                <label for="tag-description" class="editor-label">Description: </label>
+                <input name="Description" id="tag-description" class="editor-input"></input>
+            </div>
+            <div class="input-container">
+                <label for="tag-thumbnail" class="editor-label">Thumbnail: </label>
+                <input name="Thumbnail" type="file" accept="image/*" id="tag-thumbnail"></input>
+            </div>
+            <div class="label-container">
+                <div class="editor-label">Thumbnail stretched: </div>
+                <select name="ThumbnailStretched" id="tag-thumbnailstretched" class="text" >
+                    <option id="tag-thumbnailstretched-option-true" value="true">True</option>
+                    <option id="tag-thumbnailstretched-option-false" value="false">False</option>
+                </select>
+            </div>
+            <div class="input-container">
+                <img id="tag-thumbnail-image" src="/content/no-image.png">
+            </div>
+            <div>
+                <textarea name="Content" id="tag-content"></textarea>
+            </div>
+            <input type="hidden" id="tag-thumbnail-name" name="ThumbnailName" value="">
+            <div class="submit-container">
+                <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
+                <button class="submit-btn" type="submit" name="Send" value="DELETE">Delete</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+     
+        initTinyMCETag()
+
+    </script>
+    
+<% } %>

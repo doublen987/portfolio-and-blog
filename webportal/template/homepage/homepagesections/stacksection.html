@@ -1,7 +1,7 @@
 <div id="homepage-section-preview-<%= as.ID %>">
     <% for _, tag := range as.Tags {%>
         <div>
-            <div><img src="<%=s tag.Image %>" /></div>
+            <div><img src="<%=s tag.Thumbnail %>" /></div>
             <div><%=s tag.Name %></div>
         </div>
     <% } %>
@@ -11,7 +11,7 @@
     <% for _, tag := range tags {%>
         <div>
             <input class="homepage-section-editor-tag-checkbox" type="checkbox"></input>
-            <div><img src="<%=s tag.Image %>" /></div>
+            <div><img src="<%=s tag.Thumbnail %>" /></div>
             <div><%=s tag.Name %></div>
         </div>
     <% } %>

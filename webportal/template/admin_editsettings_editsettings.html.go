@@ -115,6 +115,7 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
 	_buffer.WriteString(`
     <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/content/js/he.js"></script>
     <script src="/content/js/editpost.js"></script>
 
@@ -166,12 +167,74 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
                 </div>
             </div>
         </div>
-
+        <div>
+            <canvas id="myChart"></canvas>
+        </div>
+        <div>
+            <canvas id="myChart2"></canvas>
+        </div>
 
     </div>
 
     <script>
+        const labels = [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+        ];
 
+        const data = {
+            labels: labels,
+            datasets: [{
+            label: 'My First dataset',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: [0, 10, 5, 2, 20, 30, 45],
+            }]
+        };
+
+        const config = {
+            type: 'line',
+            data: data,
+            options: {}
+        };
+
+        const myChart = new Chart(
+            document.getElementById('myChart'),
+            config
+        );
+
+        const data2 = {
+            labels: [
+                'Red',
+                'Blue',
+                'Yellow'
+            ],
+            datasets: [{
+                label: 'My First Dataset',
+                data: [300, 50, 100],
+                backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+                'rgb(255, 205, 86)'
+                ],
+                hoverOffset: 4
+            }]
+            };
+
+        const config2 = {
+            type: 'doughnut',
+            data: data2,
+        };
+    
+        const myChart2 = new Chart(
+            document.getElementById('myChart2'),
+            config2
+        );
+    
     </script>
     
 `)

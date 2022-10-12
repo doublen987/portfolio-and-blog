@@ -154,7 +154,9 @@ function onCLickAddSection(type) {
                 form.appendChild(container)
             }
             break;
-            case "stack":
+            case "stack": {
+                
+            }
             break;
             default:
         }
