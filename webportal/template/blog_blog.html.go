@@ -34,6 +34,7 @@ func HandleBlog(posts []models.Post, currentPage int, pageBlockStart int, numOfP
     <link rel="stylesheet" href="/content/editor.css">
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
+    <link rel="stylesheet" href="/content/dashboard.css">
     <script src="/content/js/nav.js"></script>
 </head>
 <body>

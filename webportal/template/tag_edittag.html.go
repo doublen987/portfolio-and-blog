@@ -34,6 +34,7 @@ func HandleEditTag(tags []models.Tag, w io.Writer) {
     <link rel="stylesheet" href="/content/editor.css">
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
+    <link rel="stylesheet" href="/content/dashboard.css">
     <script src="/content/js/nav.js"></script>
 </head>
 <body>
@@ -192,9 +193,6 @@ func HandleEditTag(tags []models.Tag, w io.Writer) {
             <div class="input-container">
                 <img id="tag-thumbnail-image" src="/content/no-image.png">
             </div>
-            <div>
-                <textarea name="Content" id="tag-content"></textarea>
-            </div>
             <input type="hidden" id="tag-thumbnail-name" name="ThumbnailName" value="">
             <div class="submit-container">
                 <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
@@ -205,7 +203,7 @@ func HandleEditTag(tags []models.Tag, w io.Writer) {
 
     <script>
      
-        initTinyMCETag()
+        initTagEditor()
 
     </script>
     

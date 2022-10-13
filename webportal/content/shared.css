@@ -157,3 +157,75 @@ svg:hover {
         font-size: 40px;
     }
 }
+
+.page-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.sidemenu-container {
+    width: 200px;
+}
+
+.editor-container {
+    width: calc(100% - 200px);
+    padding: 20px;
+}
+
+.chart-container{
+    display: inline-block;
+    width: 59%;
+}
+
+.small-chart {
+    width: 40%;
+}
+
+@media screen and (max-width: 800px) {
+    .chart-container{
+        width: 100%;
+    }
+    .sidemenu-container {
+        display: none;
+    }
+    .editor-container {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+.group-header {
+    color: #fbc23f;
+    font-size: 20px;
+}
+
+.soclink {
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #fbc23f;
+}
+
+.soclink input {
+    height: 20px;
+    background-color: #26021d;
+    color: #fbc23f;
+    border: none;
+    border-radius: 2px;
+}
+
+.editor-button {
+    color: #26021d;
+    background-color: #fbc23f;
+    border: 2px solid #fbc23f;
+    border-radius: 5px;
+    width: 80px;
+    height: 30px;
+}
+
+.editor-button:hover {
+    color: #fbc23f;
+    background-color: #26021d;
+    border: 2px solid #fbc23f;
+    cursor: pointer;
+    
+}

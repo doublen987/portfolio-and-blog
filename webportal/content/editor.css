@@ -11,8 +11,12 @@
 
 .editor-container {
     /* padding: 0 100px 0 100px; */
-    width: 600px;
-    margin: auto;
+    /* width: 600px;
+    margin: auto; */
+}
+
+.editor-item {
+    margin-bottom: 20px;
 }
 
 .label-container {

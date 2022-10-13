@@ -1,0 +1,9 @@
+.dashboard-list{
+    background-color: #26021d;
+    border: 2px solid #d08a12;
+    border-radius: 10px;
+    padding: 10px;
+    color: #fbc23f;
+    height: 200px;
+    overflow-y: scroll;
+}

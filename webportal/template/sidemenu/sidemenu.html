@@ -1,0 +1,32 @@
+<ul class="link-holder">
+    <% 
+        prefix := ""
+        links := []models.Link{
+            {
+                ID: "/dashboard",
+                Title: "Dashboard",
+            },
+            {
+                ID: "/homepage/edit",
+                Title: "Homepage",
+            },
+            {
+                ID: "/blog/edit",
+                Title: "Posts",
+            },
+            {
+                ID: "/projects/edit",
+                Title: "Projects",
+            },
+            {
+                ID: "/tag/edit",
+                Title: "Tags",
+            },
+        }
+    %>
+    <% for _, link := range links { %>
+        <li>
+            <a class="post-link" href="<%=s prefix %><%==s link.ID%>"><%==s link.Title %></a>
+        </li>
+    <% } %>
+</ul>

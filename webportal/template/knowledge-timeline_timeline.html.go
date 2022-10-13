@@ -34,6 +34,7 @@ func HandleKnowledgeTimeline(timeline []models.TimelineEvent, w io.Writer) {
     <link rel="stylesheet" href="/content/editor.css">
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
+    <link rel="stylesheet" href="/content/dashboard.css">
     <script src="/content/js/nav.js"></script>
 </head>
 <body>

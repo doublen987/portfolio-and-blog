@@ -6,6 +6,7 @@ package template
 import (
 	"io"
 
+	"github.com/doublen987/Projects/MySite/server/persistence/models"
 	"github.com/shiyanhui/hero"
 )
 
@@ -33,6 +34,7 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
     <link rel="stylesheet" href="/content/editor.css">
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
+    <link rel="stylesheet" href="/content/dashboard.css">
     <script src="/content/js/nav.js"></script>
 </head>
 <body>
@@ -121,59 +123,104 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
 
     <!--TODO: Add systems for backing up and scheduling backups, view comments, ban IPs, reviewing logs, view
     statistics, -->
+    <div class="page-container">
+        <div class="sidemenu-container">
+            `)
+	_buffer.WriteString(`<ul class="link-holder">
+    `)
 
-    <div class="editor-container">
-        <div class="timeline">
-            <div class="timeline-item timeline-comment">
-                <div class="timeline-comment-header">Guest123 commented</div>
-                <p class="timeline-comment-body">Bla bla bla bla bla!</p>
-            </div>
+	prefix := ""
+	links := []models.Link{
+		{
+			ID:    "/dashboard",
+			Title: "Dashboard",
+		},
+		{
+			ID:    "/homepage/edit",
+			Title: "Homepage",
+		},
+		{
+			ID:    "/blog/edit",
+			Title: "Posts",
+		},
+		{
+			ID:    "/projects/edit",
+			Title: "Projects",
+		},
+		{
+			ID:    "/tag/edit",
+			Title: "Tags",
+		},
+	}
+
+	for _, link := range links {
+		_buffer.WriteString(`
+        <li>
+            <a class="post-link" href="`)
+		hero.EscapeHTML(prefix, _buffer)
+		_buffer.WriteString(link.ID)
+		_buffer.WriteString(`">`)
+		_buffer.WriteString(link.Title)
+		_buffer.WriteString(`</a>
+        </li>
+    `)
+	}
+	_buffer.WriteString(`
+</ul>`)
+	_buffer.WriteString(`
         </div>
-        <div class="chart"></div>
-        <div class="logs">
-            <div class="logs-item">
-                199.199.199.199 connected!
-            </div>
-        </div>
-        <div class="backup">
-            <button>Backup</button>
-            
-        </div>
-        <div class="ip-management"></div>
-        <div class="social media">
-            <div>
-                <div class="group-header">
-                    Links
+        <div class="editor-container">
+            <div class="editor-item dashboard-list timeline">
+                <div class="timeline-item timeline-comment">
+                    <div class="timeline-comment-header">Guest123 commented</div>
+                    <p class="timeline-comment-body">Bla bla bla bla bla!</p>
                 </div>
-                <div class="group-body">
-                    `)
+            </div>
+            <div class="editor-item dashboard-list logs">
+                <div class="logs-item">
+                    199.199.199.199 connected!
+                </div>
+            </div>
+            <div class="editor-item backup">
+                <button class="editor-button">Backup</button>
+                
+            </div>
+            <div class="editor-item ip-management"></div>
+            <div class="editor-item social-media">
+                <div>
+                    <div class="group-header">
+                        Links
+                    </div>
+                    <div class="group-body">
+                        `)
 
 	for key, value := range soclinks {
 
 		_buffer.WriteString(`
-                            <div class="soclink">
-                                <span><input class="soclink-name" type="text" value="`)
+                                <div class="soclink">
+                                    <span><input class="soclink-name" type="text" value="`)
 		_buffer.WriteString(key)
 		_buffer.WriteString(`"/></span>=<span><input class="sociallink-link" type="text" value="`)
 		_buffer.WriteString(value)
 		_buffer.WriteString(`"/></span>
-                            </div>
-                    `)
+                                </div>
+                        `)
 
 	}
 
 	_buffer.WriteString(`
-                    <div></div>
+                        <div></div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div>
-            <canvas id="myChart"></canvas>
-        </div>
-        <div>
-            <canvas id="myChart2"></canvas>
-        </div>
+            <div class="editor-item chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
+            <div class="editor-item chart-container small-chart">
+                <canvas id="myChart2"></canvas>
+            </div>
 
+        </div>
     </div>
 
     <script>
