@@ -1,0 +1,30 @@
+.tags-section {
+    display: flex;
+    flex-direction: row;
+}
+
+.tags-input-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.tag-section-button-container button {
+    margin-top: 10px;
+    margin-left: 10px;
+
+    background-color: #26021d;
+    color: #d08a12;
+    border: 2px solid #d08a12;
+    border-radius: 5px;
+}
+
+.tag-section-button-container button:hover {
+    margin-top: 10px;
+    margin-left: 10px;
+
+    background-color: #d08a12;
+    color: #26021d;
+    border: 2px solid #d08a12;
+    border-radius: 5px;
+    cursor: pointer;
+}

@@ -10,7 +10,7 @@ import (
 	"github.com/shiyanhui/hero"
 )
 
-func HandleEditSettings(soclinks map[string]string, w io.Writer) {
+func HandleEditSettings(settings models.Settings, w io.Writer) {
 	_buffer := hero.GetBuffer()
 	defer hero.PutBuffer(_buffer)
 	_buffer.WriteString(`<!DOCTYPE html>
@@ -35,7 +35,33 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
     <link rel="stylesheet" href="/content/dashboard.css">
+    <link rel="stylesheet" href="/content/tag-list-editor.css">
     <script src="/content/js/nav.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <script src="/content/js/modelviewer/stl_viewer.min.js"></script>
+    <script src="/content/js/modelviewer.js"></script>
+    <style>
+        :root {
+            --bg-color-1: `)
+	_buffer.WriteString(settings.BackgroundColor1)
+	_buffer.WriteString(`;
+            --bg-color-2: `)
+	_buffer.WriteString(settings.BackgroundColor2)
+	_buffer.WriteString(`;
+            --bg-color-3: `)
+	_buffer.WriteString(settings.BackgroundColor3)
+	_buffer.WriteString(`;
+            --text-color-1: `)
+	_buffer.WriteString(settings.TextColor1)
+	_buffer.WriteString(`;
+            --text-color-2: `)
+	_buffer.WriteString(settings.TextColor2)
+	_buffer.WriteString(`;
+            --text-color-3: `)
+	_buffer.WriteString(settings.TextColor3)
+	_buffer.WriteString(`;
+        }
+    </style>
 </head>
 <body>
     <div></div>
@@ -53,7 +79,19 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
         </div>
         <nav class="main-nav">
             <div class="nav-icon-container nav-icon-container-not-clicked">
-                <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	if settings.Logo != "" {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/images/`)
+		_buffer.WriteString(settings.Logo)
+		_buffer.WriteString(`" />
+                `)
+	} else {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	}
+	_buffer.WriteString(`
             </div>
             <ul class="nav-items">
                 <li class="nav-item">
@@ -119,7 +157,9 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/content/js/he.js"></script>
-    <script src="/content/js/editpost.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script type="module" src="/content/js/editsettings.js"></script>
 
     <!--TODO: Add systems for backing up and scheduling backups, view comments, ban IPs, reviewing logs, view
     statistics, -->
@@ -194,14 +234,14 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
                     <div class="group-body">
                         `)
 
-	for key, value := range soclinks {
+	for _, soclink := range settings.SocialLinks {
 
 		_buffer.WriteString(`
                                 <div class="soclink">
                                     <span><input class="soclink-name" type="text" value="`)
-		_buffer.WriteString(key)
+		_buffer.WriteString(soclink.Name)
 		_buffer.WriteString(`"/></span>=<span><input class="sociallink-link" type="text" value="`)
-		_buffer.WriteString(value)
+		_buffer.WriteString(soclink.Link)
 		_buffer.WriteString(`"/></span>
                                 </div>
                         `)
@@ -212,9 +252,76 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
                         <div></div>
                     </div>
                 </div>
+                <div>
+                    <div class="group-header">
+                        Settings
+                    </div>
+                    <div class="group-body">
+                        <div>
+                            <label for="website-name">Website name: </label>
+                            <input id="settings-websitename" name="websitename" class="sociallink-link" type="text" value="`)
+	_buffer.WriteString(settings.WebsiteName)
+	_buffer.WriteString(`"/>
+                        </div>
+                        <div>
+                            <label for="website-logo">Website logo: </label>
+                            <input id="settings-logo-input" type="file"/>
+                            <div>
+                                <img id="settings-logo-image" src="/content/images/`)
+	_buffer.WriteString(settings.Logo)
+	_buffer.WriteString(`">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="website-color-1">Color 1: </label>
+                            <input id="settings-background-color-1" name="backgroundColor1" class="sociallink-link" type="text" value="`)
+	_buffer.WriteString(settings.BackgroundColor1)
+	_buffer.WriteString(`"/>
+                        </div>
+                        <div>
+                            <label for="website-color-2">Color 2: </label>
+                            <input id="settings-background-color-2" name="backgroundColor2" class="sociallink-link" type="text" value="`)
+	_buffer.WriteString(settings.BackgroundColor2)
+	_buffer.WriteString(`"/>
+                        </div>
+                        <div>
+                            <label for="website-color-3">Color 3: </label>
+                            <input id="settings-background-color-3" name="backgroundColor3" class="sociallink-link" type="text" value="`)
+	_buffer.WriteString(settings.BackgroundColor3)
+	_buffer.WriteString(`"/>
+                        </div>
+                        <div>
+                            <label for="website-color-1">Text Color 1: </label>
+                            <input id="settings-text-color-1" name="textColor1" class="sociallink-link" type="text" value="`)
+	_buffer.WriteString(settings.TextColor1)
+	_buffer.WriteString(`"/>
+                        </div>
+                        <div>
+                            <label for="website-color-2">Text Color 2: </label>
+                            <input id="settings-text-color-2" name="textColor2" class="sociallink-link" type="text" value="`)
+	_buffer.WriteString(settings.TextColor2)
+	_buffer.WriteString(`"/>
+                        </div>
+                        <div>
+                            <label for="website-color-3">Text Color 3: </label>
+                            <input id="settings-text-color-3" name="textColor3" class="sociallink-link" type="text" value="`)
+	_buffer.WriteString(settings.TextColor3)
+	_buffer.WriteString(`"/>
+                        </div>
+                        <div>
+                            <button id="save-settings-button">Save</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="editor-item chart-container">
-                <canvas id="myChart"></canvas>
+                <div class="chart">
+                    <canvas id="myChart"></canvas>
+                </div>
+                <div>
+                    <button id="button-prev">Prev</button>
+                    <button id="button-next">Next</button>
+                </div>
             </div>
             <div class="editor-item chart-container small-chart">
                 <canvas id="myChart2"></canvas>
@@ -249,10 +356,10 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
             options: {}
         };
 
-        const myChart = new Chart(
-            document.getElementById('myChart'),
-            config
-        );
+        // const myChart = new Chart(
+        //     document.getElementById('myChart'),
+        //     config
+        // );
 
         const data2 = {
             labels: [
@@ -277,10 +384,10 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
             data: data2,
         };
     
-        const myChart2 = new Chart(
-            document.getElementById('myChart2'),
-            config2
-        );
+        // const myChart2 = new Chart(
+        //     document.getElementById('myChart2'),
+        //     config2
+        // );
     
     </script>
     
@@ -289,7 +396,7 @@ func HandleEditSettings(soclinks map[string]string, w io.Writer) {
 	_buffer.WriteString(`
     </main>
     <footer>
-        
+        This site or product includes IP2Location LITE data available from <a href="https://lite.ip2location.com">https://lite.ip2location.com</a>.
     </footer>
     <script>
         initMobileMenu();

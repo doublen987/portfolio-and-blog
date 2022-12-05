@@ -50,6 +50,16 @@ type DBHandler interface {
 	RemoveTag(ctx context.Context, tagID string) error
 	UpdateTag(ctx context.Context, tag models.Tag) error
 	GetTags(ctx context.Context) ([]models.Tag, error)
+	AddPage(ctx context.Context, page models.Page) error
+	UpdatePage(ctx context.Context, page models.Page) error
+	RemovePage(ctx context.Context, id string) error
+	GetPage(ctx context.Context, id string) (models.Page, error)
+	GetPages(ctx context.Context) ([]models.Page, error)
+	AddVisit(ctx context.Context, visit models.Visit) error
+	GetVisits(ctx context.Context) ([]models.VisitSummary, error)
+	AddSettings(ctx context.Context, settings models.Settings) error
+	UpdateSettings(ctx context.Context, settings models.Settings) error
+	GetSettings(ctx context.Context) (models.Settings, error)
 }
 
 var DBTypeNotSupported = errors.New("The Database type provided is not supported...")

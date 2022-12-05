@@ -1,6 +1,7 @@
-<%: func HandleBlog(posts []models.Post, currentPage int, pageBlockStart int, numOfPages int, w io.Writer) %>
+<%: func HandleBlog(settings models.Settings, posts []models.Post, currentPage int, pageBlockStart int, numOfPages int, w io.Writer) %>
 <%~ "index.html" %>
 <%@ body { %>
+    <script src="/content/js/gettags.js"></script>
     <div class="posts-container">
         <% for _, post := range posts { %>
             <div class="post-card">
@@ -11,6 +12,13 @@
                 <% } %>
                 <a href="/blog/<%=s post.ID %>" class="post-card-title"><%==s post.Title %></a>
                 <div class="post-card-description"><%==s post.Description %></div>
+                <div class="post-tags">
+                    <% for _, tag := range post.Tags { %>
+                        <div class="post-tag">
+                            <img class="tag-thumbnail-image" src="/content/images/<%=s tag.Thumbnail %>">
+                        </div>
+                    <% } %>
+                </div>
             </div>
         <% } %> 
         
@@ -26,4 +34,13 @@
             <a href="/blog?page=<%==i (currentPage+1)%>" class="page-button" id="page-button-next">></a>
         <% } %>
     </div>
+    <script>
+        // function setTags(tags) {
+        //     let tagElement = document.getElementsByClassName("post-tag")
+        //     let tag = binarySearch(tags, tagElement.id.replace("tag"))
+
+        // }
+
+        // initTags()
+    </script>
 <% } %>

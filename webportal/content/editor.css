@@ -19,6 +19,14 @@
     margin-bottom: 20px;
 }
 
+.editor-select {
+    background-color: #26021d;
+    color: #d08a12;
+    border: 2px solid #d08a12;
+    border-radius: 5px;
+    
+}
+
 .label-container {
     margin: auto;
     margin-bottom: 30px;
@@ -56,4 +64,16 @@
     margin-top: 20px;
     width: 100%;
     text-align: center;
+}
+
+.main-form-container {
+    width: 600px;
+    margin: auto;
+}
+
+@media screen and (max-width: 700px) {
+    .main-form-container {
+        width: 100%;
+        margin: auto;
+    }
 }

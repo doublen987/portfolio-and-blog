@@ -10,7 +10,7 @@ body {
 }
 
 main {
-    background-color: #58234c;
+    background-color: var(--bg-color-3);
     padding-top: 80px;
     /* padding-left: 10%;
     padding-right: 10%; */
@@ -24,14 +24,14 @@ main {
     position: fixed;
     top: 0;
     left: 0;
-    background-color: #33112b;
+    background-color: var(--bg-color-2);
     padding: 0.4rem 1rem;
     z-index: 1;
 }
 
 .main-nav {
     width: 100%;
-    background-color: #33112b;
+    background-color: var(--bg-color-2);
 }
 
 .nav-items {
@@ -51,24 +51,24 @@ main {
 }
 
 .nav-item a {
-    color: #fbc23f;
+    color: var(--text-color-2);
     font-family: 'Bangers', cursive;
     font-size: 25px;
     text-decoration: none;
 }
 
 .nav-item a:hover {
-    color: #fbc23f;
+    color: var(--text-color-2);
     font-family: 'Bangers', cursive;
     text-decoration: underline;
 }
 
 svg {
-    fill: #fbc23f;
+    fill: var(--text-color-2);
 }
 
 svg:hover {
-    fill: #58234c;
+    fill: var(--bg-color-3);
     cursor: pointer;
 }
 
@@ -77,7 +77,7 @@ svg:hover {
     left: 10px;
     z-index: 100;
     position: absolute;
-    background: #240d1f;
+    background: var(--bg-color-1);
     width: 70px;
     height: 70px;
     border-radius: 50%;
@@ -93,7 +93,7 @@ svg:hover {
 }
 
 .nav-icon-container-clicked {
-    border: #fbc23f;
+    border: var(--text-color-2);
     border-width: 3px;
     border-style: solid;
 }
@@ -108,7 +108,7 @@ svg:hover {
     position:fixed;
     height: 100%;
     width: 200px;
-    background-color: #26021d;
+    background-color: var(--bg-color-1);
     padding-top: 40px;
     padding-left: 20px;
 }
@@ -127,7 +127,7 @@ svg:hover {
 }
 
 .modal-nav-item a{
-    color: #fbc23f;
+    color: var(--text-color-2);
     font-family: 'Bangers', cursive;
     font-size: 25px;
     text-decoration: none;
@@ -195,37 +195,37 @@ svg:hover {
 }
 
 .group-header {
-    color: #fbc23f;
+    color: var(--text-color-2);
     font-size: 20px;
 }
 
 .soclink {
     margin-bottom: 10px;
     font-size: 20px;
-    color: #fbc23f;
+    color: var(--text-color-2);
 }
 
 .soclink input {
     height: 20px;
-    background-color: #26021d;
-    color: #fbc23f;
+    background-color: var(--bg-color-1);
+    color: var(--text-color-2);
     border: none;
     border-radius: 2px;
 }
 
 .editor-button {
     color: #26021d;
-    background-color: #fbc23f;
-    border: 2px solid #fbc23f;
+    background-color: var(--text-color-2);
+    border: 2px solid var(--text-color-2);
     border-radius: 5px;
     width: 80px;
     height: 30px;
 }
 
 .editor-button:hover {
-    color: #fbc23f;
-    background-color: #26021d;
-    border: 2px solid #fbc23f;
+    color: var(--text-color-2);
+    background-color: var(--bg-color-1);
+    border: 2px solid var(--text-color-2);
     cursor: pointer;
     
 }

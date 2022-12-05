@@ -20,7 +20,21 @@
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
     <link rel="stylesheet" href="/content/dashboard.css">
+    <link rel="stylesheet" href="/content/tag-list-editor.css">
     <script src="/content/js/nav.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <script src="/content/js/modelviewer/stl_viewer.min.js"></script>
+    <script src="/content/js/modelviewer.js"></script>
+    <style>
+        :root {
+            --bg-color-1: <%== settings.BackgroundColor1 %>;
+            --bg-color-2: <%== settings.BackgroundColor2 %>;
+            --bg-color-3: <%== settings.BackgroundColor3 %>;
+            --text-color-1: <%== settings.TextColor1 %>;
+            --text-color-2: <%== settings.TextColor2 %>;
+            --text-color-3: <%== settings.TextColor3 %>;
+        }
+    </style>
 </head>
 <body>
     <div></div>
@@ -38,7 +52,11 @@
         </div>
         <nav class="main-nav">
             <div class="nav-icon-container nav-icon-container-not-clicked">
-                <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                <% if settings.Logo != "" { %>
+                    <img class="nav-icon" src="/content/images/<%==s settings.Logo %>" />
+                <% } else { %>
+                    <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                <% } %>
             </div>
             <ul class="nav-items">
                 <li class="nav-item">
@@ -102,7 +120,7 @@
         <% } %>
     </main>
     <footer>
-        
+        This site or product includes IP2Location LITE data available from <a href="https://lite.ip2location.com">https://lite.ip2location.com</a>.
     </footer>
     <script>
         initMobileMenu();

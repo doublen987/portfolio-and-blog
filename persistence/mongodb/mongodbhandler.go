@@ -5,13 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
+	"go.mongodb.org/mongo-driver/bson/bsonrw"
+	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/doublen987/Projects/MySite/server/persistence/models"
@@ -43,35 +48,43 @@ type MongoPost struct {
 	Hidden             bool               `bson:"hidden", json:"hidden"`
 	Published          bool               `bson:"published", json:"published"`
 	PublishDate        time.Time          `bson:"publishdate", json:"publishdate"`
-	Tags               []string           `bson:"tags", json:"tags"`
+	Tags               []string           `bson:"tags,omitempty", json:"tags,omitempty"`
 }
 
 type MongoProject struct {
-	ID                 primitive.ObjectID `bson:"_id", json:"ID"`
-	Title              string             `bson: "title,omitempty", json:"title"`
-	Link               string             `bson: "link,omitempty", json:"link"`
-	Description        string             `bson:"description,omitempty", json:"description"`
-	Thumbnail          string             `bson:"thumbnail,omitempty", json:"thumbnail"`
-	ThumbnailStretched bool               `bson:"thumbnailstretched", json:"thumbnailstretched"`
-	Timestamp          time.Time          `bson:"timestamp", json:"timestamp"`
-	Tags               []string           `bson:"tags", json:"tags"`
+	ID                 primitive.ObjectID `bson:"_id" json:"ID"`
+	Title              string             `bson:"title" json:"title"`
+	Link               string             `bson:"link" json:"link"`
+	Description        string             `bson:"description" json:"description"`
+	Thumbnail          string             `bson:"thumbnail" json:"thumbnail"`
+	ThumbnailStretched bool               `bson:"thumbnailstretched" json:"thumbnailstretched"`
+	Timestamp          time.Time          `bson:"timestamp" json:"timestamp"`
+	Tags               []string           `bson:"tags,omitempty", json:"tags,omitempty"`
 }
 
 type MongoLink struct {
-	ID          primitive.ObjectID `bson:"_id", json:"ID"`
-	Title       string             `bson: "title,omitempty", json:"title"`
-	Description string             `bson: "description,omitempty", json:"description"`
+	ID          primitive.ObjectID `bson:"_id" json:"ID"`
+	Title       string             `bson: "title,omitempty" json:"title"`
+	Description string             `bson: "description,omitempty" json:"description"`
 }
 
 type MongoKnowledgeTimelineEvent struct {
-	ID          primitive.ObjectID `bson:"_id", json:"ID"`
-	Title       string             `bson:"title,omitempty", json:"title"`
-	Description string             `bson:"description,omitempty", json:"description"`
-	Image       string             `bson:"image,omitempty", json:"image"`
+	ID          primitive.ObjectID `bson:"_id" json:"ID"`
+	Title       string             `bson:"title,omitempty" json:"title"`
+	Description string             `bson:"description,omitempty" json:"description"`
+	Image       string             `bson:"image,omitempty" json:"image"`
+}
+
+type MongoPage struct {
+	ID       string                   `bson:"ID" json:"ID"`
+	Name     string                   `bson:"name" json:"name"`
+	Homepage bool                     `bson:"homepage" json:"homepage"`
+	Sections []map[string]interface{} `bson:"sections" json:"section"`
 }
 
 type MongodbHandler struct {
-	Session *mongo.Client
+	Session    *mongo.Client
+	SettingsID string
 }
 
 func getHash(pwd []byte) string {
@@ -82,19 +95,83 @@ func getHash(pwd []byte) string {
 	return string(hash)
 }
 
+type nullawareStrDecoder struct{}
+
+func (nullawareStrDecoder) DecodeValue(dctx bsoncodec.DecodeContext, vr bsonrw.ValueReader, val reflect.Value) error {
+	if !val.CanSet() || val.Kind() != reflect.String {
+		return errors.New("bad type or not settable")
+	}
+	var str string
+	var err error
+	switch vr.Type() {
+	case bsontype.String:
+		if str, err = vr.ReadString(); err != nil {
+			return err
+		}
+	case bsontype.Null: // THIS IS THE MISSING PIECE TO HANDLE NULL!
+		if err = vr.ReadNull(); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("cannot decode %v into a string type", vr.Type())
+	}
+
+	val.SetString(str)
+	return nil
+}
+
 func NewMongodbHandler(connection string) (*MongodbHandler, error) {
 	fmt.Println("Connecting to mongodb: " + connection)
 	//s, err := mgo.Dial(connection)
 	ctx := context.Background()
-	s, err := mongo.NewClient(options.Client().ApplyURI(connection))
+	s, err := mongo.NewClient(options.Client().ApplyURI(connection).SetRegistry(
+		bson.NewRegistryBuilder().RegisterTypeDecoder(reflect.TypeOf(""), nullawareStrDecoder{}).Build(),
+	))
 	if err != nil {
 		fmt.Println(err)
 		return &MongodbHandler{}, err
 	}
 	err = s.Connect(ctx)
-	return &MongodbHandler{
-		Session: s,
-	}, err
+	if err != nil {
+		fmt.Println(err)
+		return &MongodbHandler{}, err
+	}
+
+	currentTime := time.Now()
+	connectionEstablished := false
+	for !connectionEstablished {
+		diff := time.Since(currentTime)
+		if diff.Seconds() > 1 {
+			fmt.Println("Trying to connect to database")
+			myCtx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+			err = s.Ping(myCtx, readpref.Primary())
+			if err == nil {
+				connectionEstablished = true
+				fmt.Println("Connected to database")
+			}
+			currentTime = time.Now()
+		}
+	}
+
+	handler := MongodbHandler{
+		Session:    s,
+		SettingsID: "settings",
+	}
+
+	if err == nil {
+		handler.AddSettings(context.Background(), models.Settings{
+			WebsiteName:      "MySite",
+			Logo:             "",
+			BackgroundColor1: "#26021d",
+			BackgroundColor2: "#33112b",
+			BackgroundColor3: "#58234c",
+			TextColor1:       "#d08a12",
+			TextColor2:       "#fbc23f",
+			TextColor3:       "#ffffff",
+		})
+	}
+
+	return &handler, err
 }
 func (handler *MongodbHandler) AddUser(ctx context.Context, user models.User) error {
 	s := handler.Session
@@ -231,6 +308,11 @@ func (handler *MongodbHandler) AddPost(ctx context.Context, post models.Post) er
 
 	timeOfAddage := time.Now()
 
+	mpostTags := []string{}
+	for _, tag := range post.Tags {
+		mpostTags = append(mpostTags, tag.ID)
+	}
+
 	newPost := MongoPost{
 		ID:                 newID,
 		Title:              post.Title,
@@ -241,7 +323,7 @@ func (handler *MongodbHandler) AddPost(ctx context.Context, post models.Post) er
 		LastEditTimestamp:  timeOfAddage,
 		Hidden:             post.Hidden,
 		Published:          false,
-		Tags:               post.Tags,
+		Tags:               mpostTags,
 	}
 
 	_, err := s.Database("MojSajt").Collection("posts").InsertOne(ctx, newPost)
@@ -265,6 +347,14 @@ func (handler *MongodbHandler) UpdatePost(ctx context.Context, post models.Post)
 	fields["thumbnailstretched"] = post.ThumbnailStretched
 	fields["lastedittimestamp"] = time.Now()
 	fields["hidden"] = post.Hidden
+
+	mpostTags := []string{}
+	for _, tag := range post.Tags {
+		mpostTags = append(mpostTags, tag.ID)
+	}
+
+	fmt.Println(mpostTags)
+	fields["tags"] = mpostTags
 
 	for key, value := range fields {
 		updateFields = append(updateFields, bson.E{key, value})
@@ -387,17 +477,40 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 	if ctx.Value("hidden") == false {
 		filter["hidden"] = false
 	}
-
-	mposts := []MongoPost{}
 	posts := []models.Post{}
-	cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, filter, findOptions)
+
+	tags := []models.Tag{}
+	tagmap := map[string]models.Tag{}
+	cursorTags, err := s.Database("MojSajt").Collection("tags").Find(ctx, bson.D{})
 	if err != nil {
 		return posts, err
 	}
-	fmt.Println(time.Now().Format("January-02-2006"))
+	cursorTags.All(ctx, &tags)
+	cursorTags.Close(ctx)
+	for _, tag := range tags {
+		tagmap[tag.ID] = tag
+	}
+
+	mposts := []MongoPost{}
+
+	cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, filter, findOptions)
+	if err != nil {
+		fmt.Println("Error retrieving posts")
+		return posts, err
+	}
+
+	//fmt.Println(tagmap)
 	cursor.All(ctx, &mposts)
 	defer cursor.Close(ctx)
+	fmt.Println(mposts)
 	for _, mpost := range mposts {
+
+		newPostTags := []models.Tag{}
+		for _, postTag := range mpost.Tags {
+			postrealtag := tagmap[postTag]
+			newPostTags = append(newPostTags, postrealtag)
+		}
+
 		posts = append(posts, models.Post{
 			ID:                mpost.ID.Hex(),
 			Title:             mpost.Title,
@@ -408,6 +521,7 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 			LastEditTimestamp: mpost.LastEditTimestamp.Format("January-02-2006"),
 			Published:         mpost.Published,
 			Hidden:            mpost.Hidden,
+			Tags:              newPostTags,
 		})
 	}
 	return posts, err
@@ -485,6 +599,11 @@ func (handler *MongodbHandler) AddProject(ctx context.Context, project models.Pr
 
 	newID := primitive.NewObjectID()
 
+	mprojectTags := []string{}
+	for _, tag := range project.Tags {
+		mprojectTags = append(mprojectTags, tag.ID)
+	}
+
 	newProject := MongoProject{
 		ID:                 newID,
 		Title:              project.Title,
@@ -493,7 +612,7 @@ func (handler *MongodbHandler) AddProject(ctx context.Context, project models.Pr
 		Thumbnail:          project.Thumbnail,
 		ThumbnailStretched: project.ThumbnailStretched,
 		Timestamp:          time.Now(),
-		Tags:               project.Tags,
+		Tags:               mprojectTags,
 	}
 
 	_, err := s.Database("MojSajt").Collection("projects").InsertOne(ctx, newProject)
@@ -515,6 +634,14 @@ func (handler *MongodbHandler) UpdateProject(ctx context.Context, project models
 	fields["link"] = project.Link
 	fields["thumbnail"] = project.Thumbnail
 	fields["thumbnailstretched"] = project.ThumbnailStretched
+
+	mpostTags := []string{}
+	for _, tag := range project.Tags {
+		mpostTags = append(mpostTags, tag.ID)
+	}
+
+	fmt.Println(mpostTags)
+	fields["tags"] = mpostTags
 
 	for key, value := range fields {
 		updateFields = append(updateFields, bson.E{key, value})
@@ -551,9 +678,21 @@ func (handler *MongodbHandler) GetProjects(ctx context.Context) ([]models.Projec
 	// if err != nil {
 	// 	return []models.Project{}, err
 	// }
-
 	mprojects := []MongoProject{}
 	projects := []models.Project{}
+	tags := []models.Tag{}
+
+	tagmap := map[string]models.Tag{}
+	cursorTags, err := s.Database("MojSajt").Collection("tags").Find(ctx, bson.D{})
+	if err != nil {
+		return projects, err
+	}
+	cursorTags.All(ctx, &tags)
+	cursorTags.Close(ctx)
+	for _, tag := range tags {
+		tagmap[tag.ID] = tag
+	}
+
 	cursor, err := s.Database("MojSajt").Collection("projects").Find(ctx, bson.D{})
 	if err != nil {
 		return projects, err
@@ -562,6 +701,13 @@ func (handler *MongodbHandler) GetProjects(ctx context.Context) ([]models.Projec
 	cursor.Close(ctx)
 
 	for _, mproject := range mprojects {
+
+		newPostTags := []models.Tag{}
+		for _, postTag := range mproject.Tags {
+			postrealtag := tagmap[postTag]
+			newPostTags = append(newPostTags, postrealtag)
+		}
+
 		projects = append(projects, models.Project{
 			ID:                 mproject.ID.Hex(),
 			Title:              mproject.Title,
@@ -570,6 +716,7 @@ func (handler *MongodbHandler) GetProjects(ctx context.Context) ([]models.Projec
 			Thumbnail:          mproject.Thumbnail,
 			ThumbnailStretched: mproject.ThumbnailStretched,
 			Timestamp:          mproject.Timestamp.Format("Jan/06/15"),
+			Tags:               newPostTags,
 		})
 	}
 	return projects, err
@@ -727,9 +874,6 @@ func (handler *MongodbHandler) RemoveTag(ctx context.Context, tagID string) erro
 	//if oid, err := primitive.ObjectIDFromHex(userID); err == nil {
 	_, err := s.Database("MojSajt").Collection("tags").DeleteOne(ctx, bson.D{{"ID", tagID}})
 	return err
-	// } else {
-	// 	return err
-	// }
 }
 func (handler *MongodbHandler) UpdateTag(ctx context.Context, tag models.Tag) error {
 	s := handler.Session
@@ -748,18 +892,15 @@ func (handler *MongodbHandler) UpdateTag(ctx context.Context, tag models.Tag) er
 	fields["thumbnail"] = tag.Thumbnail
 	fields["thumbnailstretched"] = tag.ThumbnailStretched
 
-	// for key, value := range fields {
-	// 	updateFields = append(updateFields, bson.E{key, value})
-	// }
+	for key, value := range fields {
+		updateFields = append(updateFields, bson.E{key, value})
+	}
 
 	// fmt.Println(primitive.ObjectIDFromHex(user.ID))
 	// if id, err := primitive.ObjectIDFromHex(user.ID); err == nil {
 	_, err := s.Database("MojSajt").Collection("tags").UpdateOne(ctx, bson.D{{"ID", tag.ID}}, bson.D{{"$set", updateFields}})
 
 	return err
-	// } else {
-	// 	return ErrInvalidPostId
-	// }
 }
 func (handler *MongodbHandler) GetTags(ctx context.Context) ([]models.Tag, error) {
 	s := handler.Session
@@ -777,4 +918,205 @@ func (handler *MongodbHandler) GetTags(ctx context.Context) ([]models.Tag, error
 	cursor.All(ctx, &tags)
 	defer cursor.Close(ctx)
 	return tags, err
+}
+func (handler *MongodbHandler) AddPage(ctx context.Context, page models.Page) error {
+	s := handler.Session
+
+	// sections :=
+	// for _, section := range page.Sections {
+	// 	stackSection, ok := section.(models.StackSection)
+
+	// }
+
+	guid := xid.New()
+	page.ID = guid.String()
+
+	_, err := s.Database("MojSajt").Collection("pages").InsertOne(ctx, page)
+	return err
+}
+func (handler *MongodbHandler) UpdatePage(ctx context.Context, page models.Page) error {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+	// if err != nil {
+	// 	return models.Post{}, err
+	// }
+	var updateFields bson.D
+
+	var fields map[string]interface{}
+	fields = make(map[string]interface{})
+	fields["name"] = page.Name
+	fields["homepage"] = page.Homepage
+	fields["sections"] = page.Sections
+
+	for key, value := range fields {
+		updateFields = append(updateFields, bson.E{key, value})
+	}
+
+	fmt.Println(page.ID)
+	_, err := s.Database("MojSajt").Collection("pages").UpdateOne(ctx, bson.D{{"ID", page.ID}}, bson.D{{"$set", updateFields}})
+
+	return err
+}
+func (handler *MongodbHandler) RemovePage(ctx context.Context, id string) error {
+	s := handler.Session
+
+	_, err := s.Database("MojSajt").Collection("pages").DeleteOne(ctx, bson.D{{"ID", id}})
+	return err
+}
+func (handler *MongodbHandler) GetPages(ctx context.Context) ([]models.Page, error) {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+
+	filter := bson.M{}
+	pages := []models.Page{}
+
+	cursor, err := s.Database("MojSajt").Collection("pages").Find(ctx, filter)
+	if err != nil {
+		fmt.Println("Error retrieving posts")
+		return pages, err
+	}
+
+	//fmt.Println(tagmap)
+	cursor.All(ctx, &pages)
+	defer cursor.Close(ctx)
+	fmt.Println(pages)
+	return pages, err
+}
+func (handler *MongodbHandler) GetPage(ctx context.Context, id string) (models.Page, error) {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+	// if err != nil {
+	// 	return models.Post{}, err
+	// }
+
+	filter := bson.M{}
+	page := models.Page{}
+	mpage := MongoPage{}
+	if ctx.Value("homepage") == true {
+		filter["homepage"] = true
+	} else {
+		filter["ID"] = id
+	}
+	cursor, err := s.Database("MojSajt").Collection("pages").Find(ctx, filter)
+	defer cursor.Close(ctx)
+	if cursor.Next(ctx) {
+		err = cursor.Decode(&mpage)
+		if err != nil {
+			return models.Page{}, err
+		}
+		page.ID = mpage.ID
+		page.Homepage = mpage.Homepage
+		page.Name = mpage.Name
+		for _, section := range mpage.Sections {
+			page.Sections = append(page.Sections, section)
+		}
+		return page, nil
+	}
+	return models.Page{}, ErrPostNotFound
+}
+func (handler *MongodbHandler) AddVisit(ctx context.Context, visit models.Visit) error {
+	fields := make(map[string]interface{})
+	fields["pages."+visit.URL] = 1
+	fields["countries."+visit.Country] = 1
+	s := handler.Session
+	opts := options.Update().SetUpsert(true)
+
+	date := time.Now().Format("2006/01/02")
+
+	_, err := s.Database("MojSajt").Collection("visits").UpdateOne(ctx, bson.D{{"date", date}}, bson.D{{"$inc", fields}}, opts)
+
+	return err
+}
+func (handler *MongodbHandler) GetVisits(ctx context.Context) ([]models.VisitSummary, error) {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+
+	filter := bson.D{}
+	visits := []models.VisitSummary{}
+
+	cursor, err := s.Database("MojSajt").Collection("visits").Find(ctx, filter)
+	if err != nil {
+		fmt.Println("Error retrieving posts")
+		return visits, err
+	}
+
+	//fmt.Println(tagmap)
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var visit models.VisitSummary
+		cursor.Decode(&visit)
+		visits = append(visits, visit)
+	}
+	fmt.Println(visits)
+	return visits, err
+}
+func (handler *MongodbHandler) AddSettings(ctx context.Context, settings models.Settings) error {
+	s := handler.Session
+
+	settings.ID = handler.SettingsID
+	replaceModel := options.ReplaceOptions{}
+	replaceModel.SetUpsert(true)
+	//newID := primitive.NewObjectID()
+	// cursor := s.Database(handler.databaseName).Collection("settings").FindOne(ctx, bson.D{{"ID", handler.settingsID}})
+	// err := cursor.Decode(&settings)
+	// if err != nil {
+	_, err := s.Database("MojSajt").Collection("settings").ReplaceOne(ctx, bson.D{{"ID", handler.SettingsID}}, settings, &replaceModel)
+	return err
+	//}
+	return nil
+}
+func (handler *MongodbHandler) UpdateSettings(ctx context.Context, settings models.Settings) error {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+	// if err != nil {
+	// 	return models.Post{}, err
+	// }
+	var updateFields bson.D
+
+	var fields map[string]interface{}
+	fields = make(map[string]interface{})
+	fields["websiteName"] = settings.WebsiteName
+	if settings.Logo != "" {
+		fields["logo"] = settings.Logo
+	}
+	fields["backgroundColor1"] = settings.BackgroundColor1
+	fields["backgroundColor2"] = settings.BackgroundColor2
+	fields["backgroundColor3"] = settings.BackgroundColor3
+	fields["textColor1"] = settings.TextColor1
+	fields["textColor2"] = settings.TextColor2
+	fields["textColor3"] = settings.TextColor3
+	// if user.Password != "" {
+	// 	fields["password"] = getHash([]byte(user.Password))
+	// }
+
+	for key, value := range fields {
+		updateFields = append(updateFields, bson.E{key, value})
+	}
+
+	_, err := s.Database("MojSajt").Collection("settings").UpdateOne(ctx, bson.D{{"ID", handler.SettingsID}}, bson.D{{"$set", updateFields}})
+	if err != nil {
+		return ErrInvalidPostId
+	}
+	return nil
+}
+func (handler *MongodbHandler) GetSettings(ctx context.Context) (models.Settings, error) {
+	s := handler.Session
+	// err := s.Connect(ctx)
+	// defer s.Disconnect(ctx)
+
+	settings := models.Settings{}
+	cursor := s.Database("MojSajt").Collection("settings").FindOne(ctx, bson.D{{"ID", handler.SettingsID}}, options.FindOne())
+
+	err := cursor.Decode(&settings)
+	if err != nil {
+		return settings, err
+	}
+
+	return settings, nil
 }

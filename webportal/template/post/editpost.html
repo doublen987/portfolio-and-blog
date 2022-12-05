@@ -1,88 +1,119 @@
-<%: func HandleEditPost(posts []models.Post, w io.Writer)%>
+<%: func HandleEditPost(settings models.Settings, posts []models.Post, tags []models.Tag, w io.Writer)%>
 <%~ "index.html" %>
 <%@ body { %>
     <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/content/js/he.js"></script>
-    <script src="/content/js/editpost.js"></script>
-
+    <script type="module" src="/content/js/tags.js"></script>
+    <script type="module" src="/content/js/editpost.js"></script>
+    
+    
+    <link rel="stylesheet" href="/content/editpost.css">
     <div class="editor-container">
-        <form id="form1" action="/blog/edit" enctype="multipart/form-data" method="POST">
-            <div class="input-container">
-                <label for="SelectedPost" class="editor-label">Choose a post:</label>
-                <select name="SelectedPost" id="chosen-post" class="editor-select">
-                    <option value="None">New post</option>
+        <div class="main-form-container">
+            <form id="form1" action="/blog/edit" enctype="multipart/form-data" method="POST">
+                <div class="input-container">
+                    <label for="SelectedPost" class="editor-label">Choose a post:</label>
+                    <select name="SelectedPost" id="chosen-post" class="editor-select">
+                        <option value="None">New post</option>
+                        <% for _, post := range posts { %>
+                            <option value="<%=s post.ID %>"><%=s post.Title %></option>
+                            
+                        <% } %>
+                    </select>
                     <% for _, post := range posts { %>
-                        <option value="<%=s post.ID %>"><%=s post.Title %></option>
-                        
+                        <div id="title-<%=s post.ID %>" style="display:none;"><%=s post.Title %></div>
+                        <div id="description-<%=s post.ID %>" style="display:none;"><%=s post.Description %></div>
+                        <div id="content-<%=s post.ID %>" style="display:none;"><%=s post.Content %></div>
+                        <div id="thumbnail-<%=s post.ID %>" style="display:none;"><%=s post.Thumbnail %></div>
+                        <div id="thumbnailstretched-<%=s post.ID %>" style="display:none;"><%=b post.ThumbnailStretched %></div>
+                        <div id="publishtimestamp-<%=s post.ID %>" style="display:none;"><%=s post.PublishTimestamp %></div>
+                        <div id="lastedittimestamp-<%=s post.ID %>" style="display:none;"><%=s post.LastEditTimestamp %></div>
+                        <div id="hidden-<%=s post.ID %>" style="display:none;"><%=b post.Hidden %></div>
+                        <div id="published-<%=s post.ID %>" style="display:none;"><%=b post.Published %></div>
+                        <div id="tags-<%=s post.ID %>" style="display:none;">
+                            <% for _, tag := range post.Tags { %>
+                                <div class="tag">
+                                    <div class="tag-ID"><%=s tag.ID %></div>
+                                    <div class="tag-thumbnail"><%=s tag.Thumbnail %></div>
+                                </div>
+                            <% } %>
+                        </div>
                     <% } %>
-                </select>
-                <% for _, post := range posts { %>
-                    <div id="title-<%=s post.ID %>" style="display:none;"><%=s post.Title %></div>
-                    <div id="description-<%=s post.ID %>" style="display:none;"><%=s post.Description %></div>
-                    <div id="content-<%=s post.ID %>" style="display:none;"><%=s post.Content %></div>
-                    <div id="thumbnail-<%=s post.ID %>" style="display:none;"><%=s post.Thumbnail %></div>
-                    <div id="thumbnailstretched-<%=s post.ID %>" style="display:none;"><%=b post.ThumbnailStretched %></div>
-                    <div id="publishtimestamp-<%=s post.ID %>" style="display:none;"><%=s post.PublishTimestamp %></div>
-                    <div id="lastedittimestamp-<%=s post.ID %>" style="display:none;"><%=s post.LastEditTimestamp %></div>
-                    <div id="hidden-<%=s post.ID %>" style="display:none;"><%=b post.Hidden %></div>
-                    <div id="published-<%=s post.ID %>" style="display:none;"><%=b post.Published %></div>
-                <% } %>
-            </div>
-            <div class="input-container">
-                <label for="post-title" class="editor-label">Title: </label>
-                <input name="Title" id="post-title" class="editor-input"></input>
-            </div>
-            <div class="input-container">
-                <label for="post-description" class="editor-label">Description: </label>
-                <input name="Description" id="post-description" class="editor-input"></input>
-            </div>
-            <div class="input-container">
-                <label for="post-thumbnail" class="editor-label">Thumbnail: </label>
-                <input name="Thumbnail" type="file" accept="image/*" id="post-thumbnail"></input>
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Thumbnail stretched: </div>
-                <select name="ThumbnailStretched" id="post-thumbnailstretched" class="text" >
-                    <option id="post-thumbnailstretched-option-true" value="true">True</option>
-                    <option id="post-thumbnailstretched-option-false" value="false">False</option>
-                </select>
-            </div>
-            <div class="input-container">
-                <img id="post-thumbnail-image" src="/content/no-image.png">
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Hidden: </div>
-                <select name="Hidden" id="post-hidden" class="text" >
-                    <option id="post-hidden-option-true" value="true">True</option>
-                    <option id="post-hidden-option-false" value="false">False</option>
-                </select>
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Published: </div><div id="post-published" class="text"></div>
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Date Published: </div><div id="post-publish-date" class="text"></div>
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Last Modified: </div><div id="post-last-edit-date" class="text"></div>
-            </div>
-            <div>
-                <textarea name="Content" id="post-content"></textarea>
-            </div>
-            <input type="hidden" id="post-thumbnail-name" name="ThumbnailName" value="">
-            <div class="submit-container">
-                <button id="submit-publish" class="submit-btn submit-hidden" type="submit" name="Send" value="PUBLISH">Publish</button>
-                <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
-                <button class="submit-btn" type="submit" name="Send" value="DELETE">Delete</button>
-            </div>
-        </form>
+                </div>
+                <div class="input-container">
+                    <label for="post-title" class="editor-label">Title: </label>
+                    <input name="Title" id="post-title" class="editor-input"></input>
+                </div>
+                <div class="input-container">
+                    <label for="post-description" class="editor-label">Description: </label>
+                    <input name="Description" id="post-description" class="editor-input"></input>
+                </div>
+                <div class="input-container">
+                    <div class="tags-input-container">
+                        <label for="post-description" class="editor-label">Tags: </label>
+                        <div id="post-tags" class="editor-tags">
+                        </div>
+                    </div>
+                </div>
+                <div class="input-container">
+                    <label for="post-thumbnail" class="editor-label">Thumbnail: </label>
+                    <input name="Thumbnail" type="file" accept="image/*" id="post-thumbnail"></input>
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Thumbnail stretched: </div>
+                    <select name="ThumbnailStretched" id="post-thumbnailstretched"  class="editor-select" >
+                        <option id="post-thumbnailstretched-option-true" value="true">True</option>
+                        <option id="post-thumbnailstretched-option-false" value="false">False</option>
+                    </select>
+                </div>
+                <div class="input-container">
+                    <img id="post-thumbnail-image" src="/content/no-image.png">
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Hidden: </div>
+                    <select name="Hidden" id="post-hidden" class="editor-select" >
+                        <option id="post-hidden-option-true" value="true">True</option>
+                        <option id="post-hidden-option-false" value="false">False</option>
+                    </select>
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Published: </div><div id="post-published" class="text"></div>
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Date Published: </div><div id="post-publish-date" class="text"></div>
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Last Modified: </div><div id="post-last-edit-date" class="text"></div>
+                </div>
+                <div>
+                    <textarea name="Content" id="post-content"></textarea>
+                </div>
+                <input type="hidden" id="post-thumbnail-name" name="ThumbnailName" value="">
+                <div class="submit-container">
+                    <button id="submit-publish" class="submit-btn submit-hidden" type="submit" name="Send" value="PUBLISH">Publish</button>
+                    <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
+                    <button class="submit-btn" type="submit" name="Send" value="DELETE">Delete</button>
+                </div>
+            </form>
+        </div>
     </div>
-
-    <script>
+    <div class="tags-info">
+        <% for _, tag := range tags {%>
+            <div class="tag-info">
+                <div class="tag-thumbnail"><%=s tag.Thumbnail %></div>
+                <div class="tag-ID"><%=s tag.ID %></div>
+                <div class="tag-name"><%=s tag.Name %></div>
+            </div>
+        <% } %>
+    </div>
+    <script type="module">
      
-        initTinyMCE()
+        import{initTags} from "/content/js/tags.js"
+        import{initTinyMCE} from "/content/js/editpost.js"
 
+        initTags("post-tags")
+        initTinyMCE()
     </script>
     
 <% } %>

@@ -10,7 +10,7 @@ import (
 	"github.com/shiyanhui/hero"
 )
 
-func HandleEditPost(posts []models.Post, w io.Writer) {
+func HandleEditPost(settings models.Settings, posts []models.Post, tags []models.Tag, w io.Writer) {
 	_buffer := hero.GetBuffer()
 	defer hero.PutBuffer(_buffer)
 	_buffer.WriteString(`<!DOCTYPE html>
@@ -35,7 +35,33 @@ func HandleEditPost(posts []models.Post, w io.Writer) {
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
     <link rel="stylesheet" href="/content/dashboard.css">
+    <link rel="stylesheet" href="/content/tag-list-editor.css">
     <script src="/content/js/nav.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <script src="/content/js/modelviewer/stl_viewer.min.js"></script>
+    <script src="/content/js/modelviewer.js"></script>
+    <style>
+        :root {
+            --bg-color-1: `)
+	_buffer.WriteString(settings.BackgroundColor1)
+	_buffer.WriteString(`;
+            --bg-color-2: `)
+	_buffer.WriteString(settings.BackgroundColor2)
+	_buffer.WriteString(`;
+            --bg-color-3: `)
+	_buffer.WriteString(settings.BackgroundColor3)
+	_buffer.WriteString(`;
+            --text-color-1: `)
+	_buffer.WriteString(settings.TextColor1)
+	_buffer.WriteString(`;
+            --text-color-2: `)
+	_buffer.WriteString(settings.TextColor2)
+	_buffer.WriteString(`;
+            --text-color-3: `)
+	_buffer.WriteString(settings.TextColor3)
+	_buffer.WriteString(`;
+        }
+    </style>
 </head>
 <body>
     <div></div>
@@ -53,7 +79,19 @@ func HandleEditPost(posts []models.Post, w io.Writer) {
         </div>
         <nav class="main-nav">
             <div class="nav-icon-container nav-icon-container-not-clicked">
-                <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	if settings.Logo != "" {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/images/`)
+		_buffer.WriteString(settings.Logo)
+		_buffer.WriteString(`" />
+                `)
+	} else {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	}
+	_buffer.WriteString(`
             </div>
             <ul class="nav-items">
                 <li class="nav-item">
@@ -118,133 +156,184 @@ func HandleEditPost(posts []models.Post, w io.Writer) {
     <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/content/js/he.js"></script>
-    <script src="/content/js/editpost.js"></script>
-
+    <script type="module" src="/content/js/tags.js"></script>
+    <script type="module" src="/content/js/editpost.js"></script>
+    
+    
+    <link rel="stylesheet" href="/content/editpost.css">
     <div class="editor-container">
-        <form id="form1" action="/blog/edit" enctype="multipart/form-data" method="POST">
-            <div class="input-container">
-                <label for="SelectedPost" class="editor-label">Choose a post:</label>
-                <select name="SelectedPost" id="chosen-post" class="editor-select">
-                    <option value="None">New post</option>
-                    `)
+        <div class="main-form-container">
+            <form id="form1" action="/blog/edit" enctype="multipart/form-data" method="POST">
+                <div class="input-container">
+                    <label for="SelectedPost" class="editor-label">Choose a post:</label>
+                    <select name="SelectedPost" id="chosen-post" class="editor-select">
+                        <option value="None">New post</option>
+                        `)
 	for _, post := range posts {
 		_buffer.WriteString(`
-                        <option value="`)
+                            <option value="`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`">`)
 		hero.EscapeHTML(post.Title, _buffer)
 		_buffer.WriteString(`</option>
-                        
-                    `)
+                            
+                        `)
 	}
 	_buffer.WriteString(`
-                </select>
-                `)
+                    </select>
+                    `)
 	for _, post := range posts {
 		_buffer.WriteString(`
-                    <div id="title-`)
+                        <div id="title-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(post.Title, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="description-`)
+                        <div id="description-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(post.Description, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="content-`)
+                        <div id="content-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(post.Content, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="thumbnail-`)
+                        <div id="thumbnail-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(post.Thumbnail, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="thumbnailstretched-`)
+                        <div id="thumbnailstretched-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.FormatBool(post.ThumbnailStretched, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="publishtimestamp-`)
+                        <div id="publishtimestamp-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(post.PublishTimestamp, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="lastedittimestamp-`)
+                        <div id="lastedittimestamp-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(post.LastEditTimestamp, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="hidden-`)
+                        <div id="hidden-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.FormatBool(post.Hidden, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="published-`)
+                        <div id="published-`)
 		hero.EscapeHTML(post.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.FormatBool(post.Published, _buffer)
 		_buffer.WriteString(`</div>
-                `)
+                        <div id="tags-`)
+		hero.EscapeHTML(post.ID, _buffer)
+		_buffer.WriteString(`" style="display:none;">
+                            `)
+		for _, tag := range post.Tags {
+			_buffer.WriteString(`
+                                <div class="tag">
+                                    <div class="tag-ID">`)
+			hero.EscapeHTML(tag.ID, _buffer)
+			_buffer.WriteString(`</div>
+                                    <div class="tag-thumbnail">`)
+			hero.EscapeHTML(tag.Thumbnail, _buffer)
+			_buffer.WriteString(`</div>
+                                </div>
+                            `)
+		}
+		_buffer.WriteString(`
+                        </div>
+                    `)
 	}
 	_buffer.WriteString(`
-            </div>
-            <div class="input-container">
-                <label for="post-title" class="editor-label">Title: </label>
-                <input name="Title" id="post-title" class="editor-input"></input>
-            </div>
-            <div class="input-container">
-                <label for="post-description" class="editor-label">Description: </label>
-                <input name="Description" id="post-description" class="editor-input"></input>
-            </div>
-            <div class="input-container">
-                <label for="post-thumbnail" class="editor-label">Thumbnail: </label>
-                <input name="Thumbnail" type="file" accept="image/*" id="post-thumbnail"></input>
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Thumbnail stretched: </div>
-                <select name="ThumbnailStretched" id="post-thumbnailstretched" class="text" >
-                    <option id="post-thumbnailstretched-option-true" value="true">True</option>
-                    <option id="post-thumbnailstretched-option-false" value="false">False</option>
-                </select>
-            </div>
-            <div class="input-container">
-                <img id="post-thumbnail-image" src="/content/no-image.png">
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Hidden: </div>
-                <select name="Hidden" id="post-hidden" class="text" >
-                    <option id="post-hidden-option-true" value="true">True</option>
-                    <option id="post-hidden-option-false" value="false">False</option>
-                </select>
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Published: </div><div id="post-published" class="text"></div>
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Date Published: </div><div id="post-publish-date" class="text"></div>
-            </div>
-            <div class="label-container">
-                <div class="editor-label">Last Modified: </div><div id="post-last-edit-date" class="text"></div>
-            </div>
-            <div>
-                <textarea name="Content" id="post-content"></textarea>
-            </div>
-            <input type="hidden" id="post-thumbnail-name" name="ThumbnailName" value="">
-            <div class="submit-container">
-                <button id="submit-publish" class="submit-btn submit-hidden" type="submit" name="Send" value="PUBLISH">Publish</button>
-                <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
-                <button class="submit-btn" type="submit" name="Send" value="DELETE">Delete</button>
-            </div>
-        </form>
+                </div>
+                <div class="input-container">
+                    <label for="post-title" class="editor-label">Title: </label>
+                    <input name="Title" id="post-title" class="editor-input"></input>
+                </div>
+                <div class="input-container">
+                    <label for="post-description" class="editor-label">Description: </label>
+                    <input name="Description" id="post-description" class="editor-input"></input>
+                </div>
+                <div class="input-container">
+                    <div class="tags-input-container">
+                        <label for="post-description" class="editor-label">Tags: </label>
+                        <div id="post-tags" class="editor-tags">
+                        </div>
+                    </div>
+                </div>
+                <div class="input-container">
+                    <label for="post-thumbnail" class="editor-label">Thumbnail: </label>
+                    <input name="Thumbnail" type="file" accept="image/*" id="post-thumbnail"></input>
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Thumbnail stretched: </div>
+                    <select name="ThumbnailStretched" id="post-thumbnailstretched"  class="editor-select" >
+                        <option id="post-thumbnailstretched-option-true" value="true">True</option>
+                        <option id="post-thumbnailstretched-option-false" value="false">False</option>
+                    </select>
+                </div>
+                <div class="input-container">
+                    <img id="post-thumbnail-image" src="/content/no-image.png">
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Hidden: </div>
+                    <select name="Hidden" id="post-hidden" class="editor-select" >
+                        <option id="post-hidden-option-true" value="true">True</option>
+                        <option id="post-hidden-option-false" value="false">False</option>
+                    </select>
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Published: </div><div id="post-published" class="text"></div>
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Date Published: </div><div id="post-publish-date" class="text"></div>
+                </div>
+                <div class="label-container">
+                    <div class="editor-label">Last Modified: </div><div id="post-last-edit-date" class="text"></div>
+                </div>
+                <div>
+                    <textarea name="Content" id="post-content"></textarea>
+                </div>
+                <input type="hidden" id="post-thumbnail-name" name="ThumbnailName" value="">
+                <div class="submit-container">
+                    <button id="submit-publish" class="submit-btn submit-hidden" type="submit" name="Send" value="PUBLISH">Publish</button>
+                    <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
+                    <button class="submit-btn" type="submit" name="Send" value="DELETE">Delete</button>
+                </div>
+            </form>
+        </div>
     </div>
-
-    <script>
+    <div class="tags-info">
+        `)
+	for _, tag := range tags {
+		_buffer.WriteString(`
+            <div class="tag-info">
+                <div class="tag-thumbnail">`)
+		hero.EscapeHTML(tag.Thumbnail, _buffer)
+		_buffer.WriteString(`</div>
+                <div class="tag-ID">`)
+		hero.EscapeHTML(tag.ID, _buffer)
+		_buffer.WriteString(`</div>
+                <div class="tag-name">`)
+		hero.EscapeHTML(tag.Name, _buffer)
+		_buffer.WriteString(`</div>
+            </div>
+        `)
+	}
+	_buffer.WriteString(`
+    </div>
+    <script type="module">
      
-        initTinyMCE()
+        import{initTags} from "/content/js/tags.js"
+        import{initTinyMCE} from "/content/js/editpost.js"
 
+        initTags("post-tags")
+        initTinyMCE()
     </script>
     
 `)
@@ -252,7 +341,7 @@ func HandleEditPost(posts []models.Post, w io.Writer) {
 	_buffer.WriteString(`
     </main>
     <footer>
-        
+        This site or product includes IP2Location LITE data available from <a href="https://lite.ip2location.com">https://lite.ip2location.com</a>.
     </footer>
     <script>
         initMobileMenu();

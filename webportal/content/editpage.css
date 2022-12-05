@@ -1,0 +1,39 @@
+.editor-container-main {
+    width: 500px;
+    margin: auto;
+}
+
+.tag-group-container {
+    display: flex;
+    flex-direction: row;
+    height: 40px;
+}
+
+.section-container {
+    background-color: #26021d;
+    border: 2px solid #d08a12;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+button {
+    background-color: #26021d;
+    height: 24px;
+    border: 2px solid #d08a12;
+    color: #d08a12;
+}
+
+button:hover {
+    background-color: #d08a12;
+    color: #26021d;
+    cursor: pointer;
+}
+
+.tags-section {
+    margin-bottom: 20px;
+}
+
+.stack-section-tag-image {
+    width: 30px;
+    height: 30px;
+}

@@ -7,10 +7,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 
 	//"encoding/json"
+	"github.com/ip2location/ip2location-go/v9"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/doublen987/Projects/MySite/server/functionality"
 	"github.com/doublen987/Projects/MySite/server/persistence"
@@ -33,6 +36,17 @@ type ImageResponse struct {
 	Location string `json:"location"`
 }
 
+type SectionRequest struct {
+	SelectedPageID string        `json:"selectedPageID"`
+	Sections       []interface{} `json:"sections"`
+}
+
+type SettingsReq struct {
+	models.Settings
+	Bytes    []byte `json:"bytes"`
+	FileName string `json:"filename"`
+}
+
 type key string
 
 const KeyAuthUserID key = "auth_user_id"
@@ -47,6 +61,40 @@ const KeyAuthUserID key = "auth_user_id"
 // 	amw.tokenUsers["05f717e5"] = "randomUser"
 // 	amw.tokenUsers["deadbeef"] = "user0"
 // }
+
+func IPLoggerMiddleware(database persistence.DBHandler) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			db, err := ip2location.OpenDB("./IP2LOCATION-LITE-DB1.IPV6.BIN")
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			ips := strings.Split(r.RemoteAddr, ":")
+
+			results, err := db.Get_all(ips[0])
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Printf("country_long: %s\n", results.Country_short)
+
+			ctx := r.Context()
+
+			visit := models.Visit{
+				URL:     r.URL.Path,
+				Country: strings.Trim(strings.ReplaceAll(results.Country_long, " ", ""), "."),
+			}
+			err = database.AddVisit(ctx, visit)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
 
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -74,9 +122,11 @@ func Middleware(next http.Handler) http.Handler {
 }
 
 func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint string, dbconnection string, filestoragetype string) (chan error, chan error) {
-	r := mux.NewRouter()
+	rootrouter := mux.NewRouter()
 	db, err := persistence.GetDataBaseHandler(dbtype, dbconnection)
 	fh, err := persistence.GetFileHandler(filestoragetype, "")
+	settings, err := db.GetSettings(context.Background())
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,13 +140,81 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		fmt.Println(err)
 	}
 
+	r := rootrouter.PathPrefix("").Subrouter()
+
+	r.Use(IPLoggerMiddleware(db))
+
 	r.Path("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		template.Homepage("Hi there!", "My name is Nikola, I'm a full-stack web developer from Belgrade, Serbia. Welcome to my website, here you can find all sorts of information about me, projects I've worked on, and technologies I'm currently interested in!", w)
+		//template.Homepage("Hi there!", "My name is Nikola, I'm a full-stack web developer from Belgrade, Serbia. Welcome to my website, here you can find all sorts of information about me, projects I've worked on, and technologies I'm currently interested in!", w)
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "homepage", true)
+		homepage, err := db.GetPage(ctx, "")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		fmt.Println(homepage)
+		page := models.Page2{}
+		page.ID = homepage.ID
+		page.Homepage = homepage.Homepage
+		page.Name = homepage.Name
+		for _, section := range homepage.Sections {
+			bla, ok := section.(map[string]interface{})
+			fmt.Println(ok)
+			fmt.Println(bla)
+			fmt.Println(section)
+
+			if bla["type"] == "stack" {
+				fmt.Println(reflect.TypeOf(bla["tagssections"]))
+				header, _ := bla["name"].(string)
+				newSection := models.StackSection{
+					Name: header,
+				}
+				la, _ := bla["tagssections"].(primitive.A)
+				for _, a := range la {
+					fmt.Println(reflect.TypeOf(a))
+					tagSection := a.(map[string]interface{})
+					name := tagSection["name"].(string)
+					fmt.Println(reflect.TypeOf(tagSection["tags"]))
+					tags := tagSection["tags"].(primitive.A)
+					newtags := []models.Tag{}
+					for _, tag := range tags {
+						tagMap := tag.(map[string]interface{})
+						tagid := tagMap["ID"].(string)
+						tagname := tagMap["name"].(string)
+						tagthumbnail := tagMap["thumbnail"].(string)
+						newtags = append(newtags, models.Tag{
+							ID:        tagid,
+							Name:      tagname,
+							Thumbnail: tagthumbnail,
+						})
+					}
+					newSection.TagSections = append(newSection.TagSections, models.TagSection{
+						Name: name,
+						Tags: newtags,
+					})
+				}
+				page.Sections = append(page.Sections, newSection)
+			}
+			if bla["type"] == "text" {
+				header, _ := bla["header"].(string)
+				content, _ := bla["content"].(string)
+
+				page.Sections = append(page.Sections, models.TextSection{
+					Header:  header,
+					Content: content,
+				})
+			}
+			if bla["type"] == "image" {
+
+			}
+		}
+		template.Homepage(settings, page, w)
 	})
 
 	r.PathPrefix("/login").Methods("GET").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-		template.HandleLogin("", w)
+		template.HandleLogin(settings, "", w)
 	})
 
 	r.PathPrefix("/login").Methods("POST").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -108,25 +226,25 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		authenticated, err := db.Authenticate(ctx, username, password)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			template.HandleLogin("Server error", w)
+			template.HandleLogin(settings, "Server error", w)
 			return
 		}
 
 		if !authenticated {
 			w.WriteHeader(http.StatusInternalServerError)
-			template.HandleLogin("Server error", w)
+			template.HandleLogin(settings, "Server error", w)
 			return
 		}
 
 		out, err := functionality.GenerateJWTToken(username, password)
 		if err == functionality.ErrUsernamePasswordNotFound {
 			w.WriteHeader(http.StatusBadRequest)
-			template.HandleLogin("Wrong username or password", w)
+			template.HandleLogin(settings, "Wrong username or password", w)
 			//http.Redirect(w, req, "/", http.StatusBadRequest)
 			return
 		} else if err == functionality.ErrCreatingJWT {
 			w.WriteHeader(http.StatusInternalServerError)
-			template.HandleLogin("Error occured, try again", w)
+			template.HandleLogin(settings, "Error occured, try again", w)
 			//http.Redirect(w, req, "/", http.StatusInternalServerError)
 			return
 		}
@@ -156,50 +274,102 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
 		// 	return
 		// }
-		socialLinks := map[string]string{
-			"github":   "https://github.com/doublen987",
-			"linkedin": "https://www.linkedin.com/in/nikola-nesovic-24214219a/",
-			"email":    "doublen987@gmail.com",
+		ctx := req.Context()
+		settings, err := db.GetSettings(ctx)
+
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		template.HandleEditSettings(socialLinks, w)
+
+		// socialLinks := map[string]string{
+		// 	"github":   "https://github.com/doublen987",
+		// 	"linkedin": "https://www.linkedin.com/in/nikola-nesovic-24214219a/",
+		// 	"email":    "doublen987@gmail.com",
+		// }
+		template.HandleEditSettings(settings, w)
 	})))
 
 	r.PathPrefix("/dashboard").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 	})))
 
-	// r.PathPrefix("/blog/edit/{postID}").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-	// 	defer req.Body.Close()
-	// 	vars := mux.Vars(req)
-	// 	postID := vars["postID"]
-	// 	ctx := req.Context()
-	// 	post, err := db.GetPost(ctx, postID)
-	// 	if err != nil {
-	// 		http.Error(w, err.Error(), http.StatusNotFound)
-	// 		return
-	// 	}
-	// 	template.HandleEditPost(post, w)
-	// })))
+	r.PathPrefix("/stats").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-	// r.PathPrefix("/blog/edit/{postID}").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-	// 	defer req.Body.Close()
-	// 	vars := mux.Vars(req)
-	// 	post := models.Post{}
-	// 	if err := json.NewDecoder(req.Body).Decode(post); err != nil {
-	// 		http.Error(w, err.Error(), http.StatusBadRequest)
-	// 		return
-	// 	}
+		ctx := req.Context()
 
-	// 	ctx := req.Context()
-	// 	post.ID = vars["postID"]
-	// 	newPost, err := db.UpdatePost(ctx, post)
-	// 	if err != nil {
-	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 		return
-	// 	}
+		visits, err := db.GetVisits(ctx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(visits)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})))
 
-	// 	template.HandleEditPost(newPost, w)
-	// })))
+	r.PathPrefix("/settings").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		ctx := req.Context()
+
+		settings, err := db.GetSettings(ctx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(settings)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})))
+
+	r.PathPrefix("/settings").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		settingsreq := SettingsReq{}
+		err := json.NewDecoder(req.Body).Decode(&settingsreq)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if len(settingsreq.Bytes) != 0 {
+			newFilename, err := fh.AddFile(settingsreq.Bytes, settingsreq.FileName)
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			settingsreq.Logo = newFilename
+		}
+
+		ctx := req.Context()
+		err = db.UpdateSettings(ctx, settingsreq.Settings)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		settings, err = db.GetSettings(ctx)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	})))
+
+	r.PathPrefix("/pages").Methods("GET").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+		pages, err := db.GetPages(ctx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+		}
+		json.NewEncoder(w).Encode(pages)
+	}))
 
 	r.PathPrefix("/homepage/edit").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// defer req.Body.Close()
@@ -218,11 +388,16 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		// 	return
 		// }
 
-		tags := []models.Tag{}
-		tags = append(tags, models.Tag{
-			Name:      "MongoDB",
-			Thumbnail: "",
-		})
+		// tags := []models.Tag{}
+		// tags = append(tags, models.Tag{
+		// 	Name:      "MongoDB",
+		// 	Thumbnail: "",
+		// })
+		tags, err := db.GetTags(req.Context())
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 
 		sections := []models.PageSection{}
 		sections = append(sections,
@@ -238,146 +413,59 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			},
 		)
 
-		template.HandleEditHomePage("Hi, there", sections, tags, w)
+		pages, err := db.GetPages(req.Context())
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		template.HandleEditHomePage(settings, "Hi, there", pages, sections, tags, w)
 	})))
 
 	r.PathPrefix("/homepage/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		defer req.Body.Close()
-		method := req.FormValue("Send")
 
-		if method == "POST" {
-			post := models.Post{}
-			posts := []models.Post{}
-			// if err := json.NewDecoder(req.Body).Decode(post); err != nil {
-			// 	http.Error(w, err.Error(), http.StatusBadRequest)
-			// 	return
-			// }
+		page := models.Page{}
 
-			//1. parse input, type multipart/form-data
-			//ParseMultipartForm parses a request body as multipart/form-data. The whole request body is parsed and up to a
-			//total of maxMemory bytes of its file parts are stored in memory, with the remainder stored on disk in temporary
-			//files. ParseMultipartForm calls ParseForm if necessary. After one call to ParseMultipartForm, subsequent calls
-			//have no effect.
-			req.ParseMultipartForm(10 << 20)
+		err := json.NewDecoder(req.Body).Decode(&page)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 
-			//2. retrieve file from posted form-data
-			var fileName string = ""
-			file, handler, err := req.FormFile("Thumbnail")
+		fmt.Println(page.Sections)
 
-			if err != nil {
-				fmt.Println("Error Retrieving thumbnail from request:")
-				fmt.Println(err)
-				fileName = req.FormValue("ThumbnailName")
-			} else {
-				defer file.Close()
-				fmt.Printf("Uploaded File: %+v\n", handler.Filename)
-				fmt.Printf("File Size: %+v\n", handler.Size)
-				fmt.Printf("MIME Header: %+v\n", handler.Header)
-				fileBytes, err := ioutil.ReadAll(file)
-				if err != nil {
-					fmt.Println("Error Reading file bytes:")
-					fmt.Println(err)
-				} else {
-					fileName, err = fh.AddFile(fileBytes, handler.Filename)
-					if err != nil {
-						fmt.Println("Error Adding File:")
-						fmt.Println(err)
-					}
-				}
-
-			}
-
-			selectedPostId := req.FormValue("SelectedPost")
-			post.Title = req.FormValue("Title")
-			post.Description = req.FormValue("Description")
-			post.Content = req.FormValue("Content")
-			if req.FormValue("Hidden") == "true" {
-				post.Hidden = true
-			} else {
-				post.Hidden = false
-			}
-			post.Thumbnail = fileName
-
-			if req.FormValue("ThumbnailStretched") == "true" {
-				post.ThumbnailStretched = true
-			} else {
-				post.ThumbnailStretched = false
-			}
-
-			ctx := req.Context()
-			if selectedPostId == "" || selectedPostId == "None" {
-				err := db.AddPost(ctx, post)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			} else {
-				post.ID = selectedPostId
-				_, err := db.UpdatePost(ctx, post)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-
-			posts, err = db.GetPosts(ctx)
+		ctx := req.Context()
+		if page.ID == "" || page.ID == "None" {
+			err := db.AddPage(ctx, page)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
-			fmt.Println(post.Title)
-			fmt.Println(post.Content)
-
-			template.HandleEditPost(posts, w)
-		}
-		if method == "DELETE" {
-			selectedPostId := req.FormValue("SelectedPost")
-			fmt.Printf("Deleting post: $s\n", selectedPostId)
-
-			ctx := req.Context()
-			if selectedPostId != "" && selectedPostId != "None" {
-				err := db.RemovePost(ctx, selectedPostId)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-
-			posts, err := db.GetPosts(ctx)
+		} else {
+			err := db.UpdatePage(ctx, page)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
-			fmt.Printf("Deleted post: $s\n", selectedPostId)
-			template.HandleEditPost(posts, w)
 		}
-		if method == "PUBLISH" {
-			selectedPostId := req.FormValue("SelectedPost")
-			fmt.Printf("Publishing post: $s\n", selectedPostId)
 
-			ctx := req.Context()
-			if selectedPostId != "" && selectedPostId != "None" {
-				err := db.PublishPost(ctx, selectedPostId)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-
-			posts, err := db.GetPosts(ctx)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			fmt.Printf("Published post: $s\n", selectedPostId)
-			template.HandleEditPost(posts, w)
+		tags, err := db.GetTags(req.Context())
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+
+		pages, err := db.GetPages(req.Context())
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		template.HandleEditHomePage(settings, "", pages, []models.PageSection{}, tags, w)
 
 	})))
 
-	r.PathPrefix("/tag/edit").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	r.PathPrefix("/tags/edit").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// defer req.Body.Close()
 		// vars := mux.Vars(req)
 		// postID := vars["postID"]
@@ -387,31 +475,18 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		// 	http.Error(w, err.Error(), http.StatusNotFound)
 		// 	return
 		// }
-		//ctx := req.Context()
+		ctx := req.Context()
 		tags := []models.Tag{}
-		tags = append(tags,
-			models.Tag{
-				Name:      "MongoDB",
-				Thumbnail: "",
-			},
-			models.Tag{
-				Name:      "Golang",
-				Thumbnail: "",
-			},
-			models.Tag{
-				Name:      "AWS",
-				Thumbnail: "",
-			},
-		)
-		// tags, err := db.GetTags(ctx)
+
+		tags, err := db.GetTags(ctx)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditTag(tags, w)
+		template.HandleEditTag(settings, tags, w)
 	})))
 
-	r.PathPrefix("/tag/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	r.PathPrefix("/tags/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		defer req.Body.Close()
 		method := req.FormValue("Send")
 
@@ -493,7 +568,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			fmt.Println(tag.Name)
 			fmt.Println(tag.Content)
 
-			template.HandleEditTag(tags, w)
+			template.HandleEditTag(settings, tags, w)
 		}
 		if method == "DELETE" {
 			selectedTagId := req.FormValue("SelectedTag")
@@ -515,9 +590,25 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 
 			fmt.Printf("Deleted tag: $s\n", selectedTagId)
-			template.HandleEditTag(tags, w)
+			template.HandleEditTag(settings, tags, w)
 		}
 
+	})))
+
+	r.PathPrefix("/tags").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		ctx := req.Context()
+
+		tags, err := db.GetTags(ctx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(tags)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	})))
 
 	r.PathPrefix("/users/edit").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -536,7 +627,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditUsers(users, w)
+		template.HandleEditUsers(settings, users, w)
 	})))
 
 	r.PathPrefix("/users/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -624,7 +715,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			fmt.Println(user.Username)
 			fmt.Println(user.Password)
 
-			template.HandleEditUsers(users, w)
+			template.HandleEditUsers(settings, users, w)
 		}
 		if method == "DELETE" {
 			selectedUserId := req.FormValue("SelectedUser")
@@ -646,7 +737,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 
 			fmt.Printf("Deleted user: $s\n", selectedUserId)
-			template.HandleEditUsers(users, w)
+			template.HandleEditUsers(settings, users, w)
 		}
 
 	})))
@@ -661,13 +752,19 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		// 	http.Error(w, err.Error(), http.StatusNotFound)
 		// 	return
 		// }
+		tags, err := db.GetTags(req.Context())
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		ctx := req.Context()
 		posts, err := db.GetPosts(ctx)
+		fmt.Println(posts)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditPost(posts, w)
+		template.HandleEditPost(settings, posts, tags, w)
 	})))
 
 	r.PathPrefix("/blog/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -688,6 +785,19 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			//files. ParseMultipartForm calls ParseForm if necessary. After one call to ParseMultipartForm, subsequent calls
 			//have no effect.
 			req.ParseMultipartForm(10 << 20)
+
+			tags := []models.Tag{}
+			noMoreTags := false
+			for i := 0; !noMoreTags; i++ {
+				tag := req.FormValue("tag-" + strconv.FormatInt(int64(i), 10))
+
+				if tag == "" {
+					noMoreTags = true
+					continue
+				}
+				tags = append(tags, models.Tag{ID: tag})
+			}
+			post.Tags = tags
 
 			//2. retrieve file from posted form-data
 			var fileName string = ""
@@ -749,6 +859,11 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				}
 			}
 
+			alltags, err := db.GetTags(req.Context())
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
 			posts, err = db.GetPosts(ctx)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -758,7 +873,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			fmt.Println(post.Title)
 			fmt.Println(post.Content)
 
-			template.HandleEditPost(posts, w)
+			template.HandleEditPost(settings, posts, alltags, w)
 		}
 		if method == "DELETE" {
 			selectedPostId := req.FormValue("SelectedPost")
@@ -773,6 +888,12 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				}
 			}
 
+			tags, err := db.GetTags(req.Context())
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
 			posts, err := db.GetPosts(ctx)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -780,7 +901,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 
 			fmt.Printf("Deleted post: $s\n", selectedPostId)
-			template.HandleEditPost(posts, w)
+			template.HandleEditPost(settings, posts, tags, w)
 		}
 		if method == "PUBLISH" {
 			selectedPostId := req.FormValue("SelectedPost")
@@ -795,13 +916,19 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				}
 			}
 
+			tags, err := db.GetTags(req.Context())
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
 			posts, err := db.GetPosts(ctx)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			fmt.Printf("Published post: $s\n", selectedPostId)
-			template.HandleEditPost(posts, w)
+			template.HandleEditPost(settings, posts, tags, w)
 		}
 
 	})))
@@ -817,12 +944,17 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		// 	return
 		// }
 		ctx := req.Context()
+		tags, err := db.GetTags(req.Context())
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		projects, err := db.GetProjects(ctx)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditProject(projects, w)
+		template.HandleEditProject(settings, projects, tags, w)
 	})))
 
 	r.PathPrefix("/projects/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -843,6 +975,19 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			//files. ParseMultipartForm calls ParseForm if necessary. After one call to ParseMultipartForm, subsequent calls
 			//have no effect.
 			req.ParseMultipartForm(10 << 20)
+
+			projecttags := []models.Tag{}
+			noMoreTags := false
+			for i := 0; !noMoreTags; i++ {
+				tag := req.FormValue("tag-" + strconv.FormatInt(int64(i), 10))
+
+				if tag == "" {
+					noMoreTags = true
+					continue
+				}
+				projecttags = append(projecttags, models.Tag{ID: tag})
+			}
+			project.Tags = projecttags
 
 			//2. retrieve file from posted form-data
 			var fileName string = ""
@@ -905,7 +1050,13 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			fmt.Println(project.Title)
 			fmt.Println(project.Description)
 
-			template.HandleEditProject(projects, w)
+			tags, err := db.GetTags(req.Context())
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
+			template.HandleEditProject(settings, projects, tags, w)
 		}
 		if method == "DELETE" {
 			selectedProjectId := req.FormValue("SelectedProject")
@@ -927,7 +1078,14 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 
 			fmt.Printf("Deleted project: $s\n", selectedProjectId)
-			template.HandleEditProject(projects, w)
+
+			tags, err := db.GetTags(req.Context())
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
+			template.HandleEditProject(settings, projects, tags, w)
 		}
 
 	})))
@@ -948,7 +1106,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditKnowledgeTimeline(knowledgeTimeline, w)
+		template.HandleEditKnowledgeTimeline(settings, knowledgeTimeline, w)
 	})))
 
 	r.PathPrefix("/knowledgetimeline/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -1021,7 +1179,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			fmt.Println(event.Title)
 			fmt.Println(event.Description)
 
-			template.HandleEditKnowledgeTimeline(events, w)
+			template.HandleEditKnowledgeTimeline(settings, events, w)
 		}
 		if method == "DELETE" {
 			selectedEventId := req.FormValue("SelectedEvent")
@@ -1043,7 +1201,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 
 			fmt.Printf("Deleted knowledge timeline event: $s\n", selectedEventId)
-			template.HandleEditKnowledgeTimeline(events, w)
+			template.HandleEditKnowledgeTimeline(settings, events, w)
 		}
 
 	})))
@@ -1056,8 +1214,8 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-
-		template.HandleShowcase(projects, w)
+		fmt.Println(projects)
+		template.HandleShowcase(settings, projects, w)
 	})
 
 	r.PathPrefix("/blog/{postID}").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -1079,7 +1237,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		template.HandlePost(links, post, w)
+		template.HandlePost(settings, links, post, w)
 	})
 
 	r.PathPrefix("/blog").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -1153,7 +1311,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		template.HandleBlog(posts, currentPage, pageBlockStart, int(numOfPages), w)
+		template.HandleBlog(settings, posts, currentPage, pageBlockStart, int(numOfPages), w)
 	})
 
 	r.PathPrefix("/knowledgetimeline").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -1166,10 +1324,14 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			return
 		}
 
-		template.HandleKnowledgeTimeline(timeline, w)
+		template.HandleKnowledgeTimeline(settings, timeline, w)
 	})
 
-	r.PathPrefix("/content/images/{imageID}").Methods("GET").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	//r.PathPrefix("/content/").Handler(http.StripPrefix("/content/", http.FileServer(http.Dir("./webportal/content"))))
+
+	subr := rootrouter.PathPrefix("/content").Subrouter()
+
+	subr.PathPrefix("/images/{imageID}").Methods("GET").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		//ctx := req.Context()
 		imageBytes, err := fh.GetFile(vars["imageID"])
@@ -1199,7 +1361,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	r.PathPrefix("/content/images").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	subr.PathPrefix("/images").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		//vars := mux.Vars(req)
 		//ctx := req.Context()
 
@@ -1223,7 +1385,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		json.NewEncoder(w).Encode(imageResponse)
 	})))
 
-	r.PathPrefix("/content/").Handler(http.StripPrefix("/content/", http.FileServer(http.Dir("./webportal/content"))))
+	subr.PathPrefix("/").Handler(http.StripPrefix("/content/", http.FileServer(http.Dir("./webportal/content"))))
 
 	httpErrChan := make(chan error)
 	httpIsErrChan := make(chan error)
@@ -1231,8 +1393,8 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 	fmt.Println("Cert.pem location: " + cert)
 	fmt.Println("Key.pem location: " + key)
 
-	go func() { httpIsErrChan <- http.ListenAndServeTLS(tlsendpoint, cert, key, r) }()
-	go func() { httpErrChan <- http.ListenAndServe(endpoint, r) }()
+	go func() { httpIsErrChan <- http.ListenAndServeTLS(tlsendpoint, cert, key, rootrouter) }()
+	go func() { httpErrChan <- http.ListenAndServe(endpoint, rootrouter) }()
 
 	return httpErrChan, httpIsErrChan
 }

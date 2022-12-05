@@ -1,4 +1,4 @@
-<%: func HandleEditSettings( soclinks map[string]string, w io.Writer)%>
+<%: func HandleEditSettings(settings models.Settings, w io.Writer)%>
 <%~ "index.html" %>
 
 <%@ body { %>
@@ -6,7 +6,9 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/content/js/he.js"></script>
-    <script src="/content/js/editpost.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script type="module" src="/content/js/editsettings.js"></script>
 
     <!--TODO: Add systems for backing up and scheduling backups, view comments, ban IPs, reviewing logs, view
     statistics, -->
@@ -38,10 +40,10 @@
                     </div>
                     <div class="group-body">
                         <%
-                            for key, value := range soclinks {
+                            for _, soclink := range settings.SocialLinks {
                         %>
                                 <div class="soclink">
-                                    <span><input class="soclink-name" type="text" value="<%==s key %>"/></span>=<span><input class="sociallink-link" type="text" value="<%==s value %>"/></span>
+                                    <span><input class="soclink-name" type="text" value="<%==s soclink.Name %>"/></span>=<span><input class="sociallink-link" type="text" value="<%==s soclink.Link %>"/></span>
                                 </div>
                         <%
                             }
@@ -49,9 +51,60 @@
                         <div></div>
                     </div>
                 </div>
+                <div>
+                    <div class="group-header">
+                        Settings
+                    </div>
+                    <div class="group-body">
+                        <div>
+                            <label for="website-name">Website name: </label>
+                            <input id="settings-websitename" name="websitename" class="sociallink-link" type="text" value="<%==s settings.WebsiteName %>"/>
+                        </div>
+                        <div>
+                            <label for="website-logo">Website logo: </label>
+                            <input id="settings-logo-input" type="file"/>
+                            <div>
+                                <img id="settings-logo-image" src="/content/images/<%==s settings.Logo %>">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="website-color-1">Color 1: </label>
+                            <input id="settings-background-color-1" name="backgroundColor1" class="sociallink-link" type="text" value="<%==s settings.BackgroundColor1 %>"/>
+                        </div>
+                        <div>
+                            <label for="website-color-2">Color 2: </label>
+                            <input id="settings-background-color-2" name="backgroundColor2" class="sociallink-link" type="text" value="<%==s settings.BackgroundColor2 %>"/>
+                        </div>
+                        <div>
+                            <label for="website-color-3">Color 3: </label>
+                            <input id="settings-background-color-3" name="backgroundColor3" class="sociallink-link" type="text" value="<%==s settings.BackgroundColor3 %>"/>
+                        </div>
+                        <div>
+                            <label for="website-color-1">Text Color 1: </label>
+                            <input id="settings-text-color-1" name="textColor1" class="sociallink-link" type="text" value="<%==s settings.TextColor1 %>"/>
+                        </div>
+                        <div>
+                            <label for="website-color-2">Text Color 2: </label>
+                            <input id="settings-text-color-2" name="textColor2" class="sociallink-link" type="text" value="<%==s settings.TextColor2 %>"/>
+                        </div>
+                        <div>
+                            <label for="website-color-3">Text Color 3: </label>
+                            <input id="settings-text-color-3" name="textColor3" class="sociallink-link" type="text" value="<%==s settings.TextColor3 %>"/>
+                        </div>
+                        <div>
+                            <button id="save-settings-button">Save</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="editor-item chart-container">
-                <canvas id="myChart"></canvas>
+                <div class="chart">
+                    <canvas id="myChart"></canvas>
+                </div>
+                <div>
+                    <button id="button-prev">Prev</button>
+                    <button id="button-next">Next</button>
+                </div>
             </div>
             <div class="editor-item chart-container small-chart">
                 <canvas id="myChart2"></canvas>
@@ -86,10 +139,10 @@
             options: {}
         };
 
-        const myChart = new Chart(
-            document.getElementById('myChart'),
-            config
-        );
+        // const myChart = new Chart(
+        //     document.getElementById('myChart'),
+        //     config
+        // );
 
         const data2 = {
             labels: [
@@ -114,10 +167,10 @@
             data: data2,
         };
     
-        const myChart2 = new Chart(
-            document.getElementById('myChart2'),
-            config2
-        );
+        // const myChart2 = new Chart(
+        //     document.getElementById('myChart2'),
+        //     config2
+        // );
     
     </script>
     

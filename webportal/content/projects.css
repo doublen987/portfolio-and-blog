@@ -70,3 +70,7 @@
 .project-github-link:hover {
     fill: inherit;
 }
+
+.project-link-proprietary {
+    font-size: 20px;
+}

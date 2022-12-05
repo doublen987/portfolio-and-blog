@@ -1,36 +1,53 @@
-<%: func HandleEditHomePage(header string, sections []models.PageSection, tags []models.Tag, w io.Writer)%>
+<%: func HandleEditHomePage(settings models.Settings, header string, pages []models.Page, sections []models.PageSection, tags []models.Tag, w io.Writer)%>
 <%~ "index.html" %>
 <%@ body { %>
     <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/content/js/he.js"></script>
     <script src="/content/js/edithomepage.js"></script>
+    <link rel="stylesheet" href="/content/editpage.css">
 
     <div class="editor-container">
-        <div class="sections-header">Sections:</div>
-        <form onsubmit="event.preventDefault()" id="form1" action="/homepage/edit" enctype="multipart/form-data" method="POST">
-            <% for _, section := range sections { %>
-            <div class="input-container" id="input-container-<%=s section.GetID() %>">
-                <%  if as, ok := section.(models.TextSection); section.GetType() == "text" && ok {%>
-                    <% %>
-                    <%+ "homepage/homepagesections/textsection.html" %>
-                <% } %>
-                <% if as, ok := section.(models.ImageSection); section.GetType() == "image" && ok{%>
-                    <%+ "homepage/homepagesections/imagesection.html" %>
-                <% } %>
-                <%  if as, ok := section.(models.StackSection); section.GetType() == "stack" && ok {%>
-                    <%+ "homepage/homepagesections/stacksection.html" %>
+        <div class="editor-container-main">
+            <div class="input-container">
+                <label>page: </label>
+                <select name="selectedPageID" id="page-select">
+                    <option  class="page-select-option" value="None">New post</option>
+                    <% for _, page := range pages { %>
+                        <option class="page-select-option" value="<%==s page.ID %>"><%==s page.Name %></option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="input-container">
+                <label for="page-name-input">name: </label>
+                <input id="page-name-input" name="page-name-input" type="text"></input>
+            </div>
+            <div class="input-container">
+                <label for="page-homepage-checkmark">homepage: </label>
+                <input id="page-homepage-checkmark" name="page-homepage-checkmark" type="checkbox" value="true"></input>
+            </div>
+            <div class="sections-header">Sections:</div>
+            <form onsubmit="event.preventDefault()" id="form1" action="/homepage/edit" enctype="multipart/form-data" method="POST">
+                
+            </form>
+            <button id="show-type-modal-button">Add section</button>
+            <button id="save-homepage-sections-button">Save</button>
+            <button id="delete-homepage-sections-button">Delete</button>
+            <div id="homepage-section-type-modal">
+                <button id="type-modal-button-text">Text</button>
+                <button id="type-modal-button-image">Image</button>
+                <button id="type-modal-button-stack">Stack</button>
+                <button id="type-modal-button-3dmodel">3D model</button>
+            </div>
+            <div class="tags-info">
+                <% for _, tag := range tags {%>
+                    <div class="tag-info">
+                        <div class="tag-thumbnail"><%=s tag.Thumbnail %></div>
+                        <div class="tag-ID"><%=s tag.ID %></div>
+                        <div class="tag-name"><%=s tag.Name %></div>
+                    </div>
                 <% } %>
             </div>
-            <% } %>
-            
-        </form>
-        <button id="show-type-modal-button">Add section</button>
-        <button id="save-homepage-sections-button">Save</button>
-        <div id="homepage-section-type-modal">
-            <button id="type-modal-button-text">Text</button>
-            <button id="type-modal-button-image">Image</button>
-            <button id="type-modal-button-stack">Stack</button>
         </div>
     </div>
     

@@ -1,10 +1,56 @@
-<%: func Homepage(header,message string, w io.Writer) %>
+<%: func Homepage(settings models.Settings, page models.Page2, w io.Writer) %>
 <%~ "index.html" %>
 <%@ body { %>
     <div class="homepage-container">
-        <div class="page-section">
-            <h1 class="homepage-heading"><%= header %></h1>
-            <p class="homepage-content"><%= message %></p>
+        <% for _, section := range page.Sections { %>
+            <% 
+                sectionType := section.GetType()
+                if sectionType == "text" {
+                    textSection, _ := section.(models.TextSection)
+                    header := textSection.Header
+                    content := textSection.Content
+                    if true {
+            %>
+                <div class="page-section">
+                    <h3 class="homepage-heading"><%=s header %></h3>
+                    
+                    <p class="homepage-content"><%=s content %></p>
+                </div>
+            <%      }
+                } %>
+            <%
+            if sectionType == "stack" {
+                stackSection, _ := section.(models.StackSection)
+                name := stackSection.Name
+                tagSections := stackSection.TagSections
+            %>
+            <div class="page-section">
+                <h3 class="homepage-heading"><%=s name %></h3>
+                <%
+                    for _, tagSection := range tagSections {
+                        name := tagSection.Name
+                %>
+                <div class="homepage-stack">
+                    <div class="icon-container-label" ><%=s name %></div>
+                    <div class="icon-list">
+                        <%
+                            tags := tagSection.Tags
+                            for _, tag := range tags {
+                        %>
+                            <div class="icon-container">
+                                <img src="/content/images/<%=s tag.Thumbnail %>" class="tech-icon"/>
+                            </div>
+                        <%
+                            }
+                        %>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+            <% } %>
+        <% } %>
+        <!-- <div class="page-section">
+            
         </div>
         <div class="page-section">
             <h3 class="homepage-heading">About Me</h3>
@@ -113,6 +159,6 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 <% } %>

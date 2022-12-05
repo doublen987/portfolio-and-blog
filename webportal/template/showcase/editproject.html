@@ -1,7 +1,8 @@
-<%: func HandleEditProject(projects []models.Project, w io.Writer)%>
+<%: func HandleEditProject(settings models.Settings, projects []models.Project, tags []models.Tag, w io.Writer)%>
 <%~ "index.html" %>
 <%@ body { %>
     <div class="editor-container">
+        <div class="main-form-container">
         <form id="form1" action="/projects/edit" enctype="multipart/form-data" method="POST">
             <div class="input-container">
                 <label for="SelectedProject" class="editor-label">Choose a project:</label>
@@ -18,6 +19,14 @@
                     <div id="link-<%=s project.ID %>" style="display:none;"><%=s project.Link %></div>
                     <div id="thumbnail-<%=s project.ID %>" style="display:none;"><%=s project.Thumbnail %></div>
                     <div id="thumbnailstretched-<%=s project.ID %>" style="display:none;"><%=b project.ThumbnailStretched %></div>
+                    <div id="tags-<%=s project.ID %>" style="display:none;">
+                        <% for _, tag := range project.Tags { %>
+                            <div class="tag">
+                                <div class="tag-ID"><%=s tag.ID %></div>
+                                <div class="tag-thumbnail"><%=s tag.Thumbnail %></div>
+                            </div>
+                        <% } %>
+                    </div>
                 <% } %>
             </div>
             <div class="input-container">
@@ -29,6 +38,11 @@
                 <input name="Description" id="post-description" class="editor-input"></input>
             </div>
             <div class="input-container">
+                <label for="post-tags" class="editor-label">Tags: </label>
+                <div id="post-tags" class="editor-tags">
+                </div>
+            </div>
+            <div class="input-container">
                 <label for="post-link" class="editor-label">Link: </label>
                 <input name="Link" id="post-link" class="editor-input"></input>
             </div>
@@ -36,10 +50,13 @@
                 <label for="post-thumbnail" class="editor-label">Thumbnail: </label>
                 <input name="Thumbnail" type="file" accept="image/*" id="post-thumbnail" ></input>
             </div>
+            <div class="input-container">
+                <img id="post-thumbnail-image" src="/content/no-image.png">
+            </div>
             <input type="hidden" id="post-thumbnail-name" name="ThumbnailName" value="">
             <div class="label-container">
                 <div class="editor-label">Thumbnail stretched: </div>
-                <select name="ThumbnailStretched" id="post-thumbnailstretched" class="text" >
+                <select name="ThumbnailStretched" id="post-thumbnailstretched"  class="editor-select" >
                     <option id="post-thumbnailstretched-option-true" value="true">True</option>
                     <option id="post-thumbnailstretched-option-false" value="false">False</option>
                 </select>
@@ -48,9 +65,25 @@
                 <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
                 <button class="submit-btn" type="submit" name="Send" value="DELETE">Delete</button>
             </div>
+            <div class="tags-info">
+                <% for _, tag := range tags {%>
+                    <div class="tag-info">
+                        <div class="tag-thumbnail"><%=s tag.Thumbnail %></div>
+                        <div class="tag-ID"><%=s tag.ID %></div>
+                        <div class="tag-name"><%=s tag.Name %></div>
+                    </div>
+                <% } %>
+            </div>
         </form>
+        </div>
     </div>
     
-    <script src="/content/js/editproject.js"></script>
+    <script type="module" src="/content/js/editproject.js"></script>
+    <script type="module">
+     
+        import{initTags} from "/content/js/tags.js"
+
+        initTags("post-tags")
+    </script>
 
 <% } %>

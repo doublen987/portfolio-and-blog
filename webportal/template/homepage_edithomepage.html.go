@@ -10,7 +10,7 @@ import (
 	"github.com/shiyanhui/hero"
 )
 
-func HandleEditHomePage(header string, sections []models.PageSection, tags []models.Tag, w io.Writer) {
+func HandleEditHomePage(settings models.Settings, header string, pages []models.Page, sections []models.PageSection, tags []models.Tag, w io.Writer) {
 	_buffer := hero.GetBuffer()
 	defer hero.PutBuffer(_buffer)
 	_buffer.WriteString(`<!DOCTYPE html>
@@ -35,7 +35,33 @@ func HandleEditHomePage(header string, sections []models.PageSection, tags []mod
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
     <link rel="stylesheet" href="/content/dashboard.css">
+    <link rel="stylesheet" href="/content/tag-list-editor.css">
     <script src="/content/js/nav.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <script src="/content/js/modelviewer/stl_viewer.min.js"></script>
+    <script src="/content/js/modelviewer.js"></script>
+    <style>
+        :root {
+            --bg-color-1: `)
+	_buffer.WriteString(settings.BackgroundColor1)
+	_buffer.WriteString(`;
+            --bg-color-2: `)
+	_buffer.WriteString(settings.BackgroundColor2)
+	_buffer.WriteString(`;
+            --bg-color-3: `)
+	_buffer.WriteString(settings.BackgroundColor3)
+	_buffer.WriteString(`;
+            --text-color-1: `)
+	_buffer.WriteString(settings.TextColor1)
+	_buffer.WriteString(`;
+            --text-color-2: `)
+	_buffer.WriteString(settings.TextColor2)
+	_buffer.WriteString(`;
+            --text-color-3: `)
+	_buffer.WriteString(settings.TextColor3)
+	_buffer.WriteString(`;
+        }
+    </style>
 </head>
 <body>
     <div></div>
@@ -53,7 +79,19 @@ func HandleEditHomePage(header string, sections []models.PageSection, tags []mod
         </div>
         <nav class="main-nav">
             <div class="nav-icon-container nav-icon-container-not-clicked">
-                <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	if settings.Logo != "" {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/images/`)
+		_buffer.WriteString(settings.Logo)
+		_buffer.WriteString(`" />
+                `)
+	} else {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	}
+	_buffer.WriteString(`
             </div>
             <ul class="nav-items">
                 <li class="nav-item">
@@ -119,133 +157,67 @@ func HandleEditHomePage(header string, sections []models.PageSection, tags []mod
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/content/js/he.js"></script>
     <script src="/content/js/edithomepage.js"></script>
+    <link rel="stylesheet" href="/content/editpage.css">
 
     <div class="editor-container">
-        <div class="sections-header">Sections:</div>
-        <form onsubmit="event.preventDefault()" id="form1" action="/homepage/edit" enctype="multipart/form-data" method="POST">
-            `)
-	for _, section := range sections {
+        <div class="editor-container-main">
+            <div class="input-container">
+                <label>page: </label>
+                <select name="selectedPageID" id="page-select">
+                    <option  class="page-select-option" value="None">New post</option>
+                    `)
+	for _, page := range pages {
 		_buffer.WriteString(`
-            <div class="input-container" id="input-container-`)
-		hero.EscapeHTML(section.GetID(), _buffer)
-		_buffer.WriteString(`">
-                `)
-		if as, ok := section.(models.TextSection); section.GetType() == "text" && ok {
-
-			_buffer.WriteString(`<div class="homepage-section-editor" id="homepage-section-editor-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`">
-    <div class="homepage-section-input-container-x">
-        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg>
-    </div>
-    <div>
-        <label for="post-title" class="editor-label">Header: </label>
-        <input name="Header" id="section-header-input-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`" class="editor-input"></input>
-    </div>
-    <div>
-        <label for="post-content" class="editor-label">Content: </label>
-        <textarea name="Content" id="section-content-input-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`"></textarea>
-    </div>
-    <div>
-        <button class="editor-update-button">Update</button>
-    </div>
-    
-</div>
-<div class="homepage-section-preview" id="homepage-section-preview-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`">
-    
-    <div class="homepage-section-preview-header" id="header-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`">Header: `)
-			hero.EscapeHTML(as.Header, _buffer)
-			_buffer.WriteString(`</div>
-    <div class="homepage-section-preview-content" id="content-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`">Content: `)
-			hero.EscapeHTML(as.Content, _buffer)
-			_buffer.WriteString(`</div>
-    
-</div>
-
-`)
-		}
-		if as, ok := section.(models.ImageSection); section.GetType() == "image" && ok {
-			_buffer.WriteString(`<div class="homepage-section-preview" id="homepage-section-preview-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`">
-    <img class="homepage-section-image" id="homepage-section-image-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`" src="`)
-			hero.EscapeHTML(as.Image, _buffer)
-			_buffer.WriteString(`">
-</div>
-<div class="homepage-section-editor" id="homepage-section-editor-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`">
-    <label for="homepage-section-editor-input" class="editor-label">Image: </label>
-    <input name="homepage-section-editor-input" type="file" accept="image/*" id="homepage-section-editor-input-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`"></input>
-</div>`)
-		}
-		if as, ok := section.(models.StackSection); section.GetType() == "stack" && ok {
-			_buffer.WriteString(`<div id="homepage-section-preview-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`">
-    `)
-			for _, tag := range as.Tags {
-				_buffer.WriteString(`
-        <div>
-            <div><img src="`)
-				hero.EscapeHTML(tag.Thumbnail, _buffer)
-				_buffer.WriteString(`" /></div>
-            <div>`)
-				hero.EscapeHTML(tag.Name, _buffer)
-				_buffer.WriteString(`</div>
-        </div>
-    `)
-			}
-			_buffer.WriteString(`
-</div>
-<div  id="homepage-section-editor-`)
-			hero.EscapeHTML(as.ID, _buffer)
-			_buffer.WriteString(`">
-
-    `)
-			for _, tag := range tags {
-				_buffer.WriteString(`
-        <div>
-            <input class="homepage-section-editor-tag-checkbox" type="checkbox"></input>
-            <div><img src="`)
-				hero.EscapeHTML(tag.Thumbnail, _buffer)
-				_buffer.WriteString(`" /></div>
-            <div>`)
-				hero.EscapeHTML(tag.Name, _buffer)
-				_buffer.WriteString(`</div>
-        </div>
-    `)
-			}
-			_buffer.WriteString(`
-</div>`)
-		}
-		_buffer.WriteString(`
-            </div>
-            `)
+                        <option class="page-select-option" value="`)
+		_buffer.WriteString(page.ID)
+		_buffer.WriteString(`">`)
+		_buffer.WriteString(page.Name)
+		_buffer.WriteString(`</option>
+                    `)
 	}
 	_buffer.WriteString(`
-            
-        </form>
-        <button id="show-type-modal-button">Add section</button>
-        <button id="save-homepage-sections-button">Save</button>
-        <div id="homepage-section-type-modal">
-            <button id="type-modal-button-text">Text</button>
-            <button id="type-modal-button-image">Image</button>
-            <button id="type-modal-button-stack">Stack</button>
+                </select>
+            </div>
+            <div class="input-container">
+                <label for="page-name-input">name: </label>
+                <input id="page-name-input" name="page-name-input" type="text"></input>
+            </div>
+            <div class="input-container">
+                <label for="page-homepage-checkmark">homepage: </label>
+                <input id="page-homepage-checkmark" name="page-homepage-checkmark" type="checkbox" value="true"></input>
+            </div>
+            <div class="sections-header">Sections:</div>
+            <form onsubmit="event.preventDefault()" id="form1" action="/homepage/edit" enctype="multipart/form-data" method="POST">
+                
+            </form>
+            <button id="show-type-modal-button">Add section</button>
+            <button id="save-homepage-sections-button">Save</button>
+            <button id="delete-homepage-sections-button">Delete</button>
+            <div id="homepage-section-type-modal">
+                <button id="type-modal-button-text">Text</button>
+                <button id="type-modal-button-image">Image</button>
+                <button id="type-modal-button-stack">Stack</button>
+                <button id="type-modal-button-3dmodel">3D model</button>
+            </div>
+            <div class="tags-info">
+                `)
+	for _, tag := range tags {
+		_buffer.WriteString(`
+                    <div class="tag-info">
+                        <div class="tag-thumbnail">`)
+		hero.EscapeHTML(tag.Thumbnail, _buffer)
+		_buffer.WriteString(`</div>
+                        <div class="tag-ID">`)
+		hero.EscapeHTML(tag.ID, _buffer)
+		_buffer.WriteString(`</div>
+                        <div class="tag-name">`)
+		hero.EscapeHTML(tag.Name, _buffer)
+		_buffer.WriteString(`</div>
+                    </div>
+                `)
+	}
+	_buffer.WriteString(`
+            </div>
         </div>
     </div>
     
@@ -254,7 +226,7 @@ func HandleEditHomePage(header string, sections []models.PageSection, tags []mod
 	_buffer.WriteString(`
     </main>
     <footer>
-        
+        This site or product includes IP2Location LITE data available from <a href="https://lite.ip2location.com">https://lite.ip2location.com</a>.
     </footer>
     <script>
         initMobileMenu();

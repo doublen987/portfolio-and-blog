@@ -6,10 +6,11 @@ package template
 import (
 	"io"
 
+	"github.com/doublen987/Projects/MySite/server/persistence/models"
 	"github.com/shiyanhui/hero"
 )
 
-func Homepage(header, message string, w io.Writer) {
+func Homepage(settings models.Settings, page models.Page2, w io.Writer) {
 	_buffer := hero.GetBuffer()
 	defer hero.PutBuffer(_buffer)
 	_buffer.WriteString(`<!DOCTYPE html>
@@ -34,7 +35,33 @@ func Homepage(header, message string, w io.Writer) {
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
     <link rel="stylesheet" href="/content/dashboard.css">
+    <link rel="stylesheet" href="/content/tag-list-editor.css">
     <script src="/content/js/nav.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <script src="/content/js/modelviewer/stl_viewer.min.js"></script>
+    <script src="/content/js/modelviewer.js"></script>
+    <style>
+        :root {
+            --bg-color-1: `)
+	_buffer.WriteString(settings.BackgroundColor1)
+	_buffer.WriteString(`;
+            --bg-color-2: `)
+	_buffer.WriteString(settings.BackgroundColor2)
+	_buffer.WriteString(`;
+            --bg-color-3: `)
+	_buffer.WriteString(settings.BackgroundColor3)
+	_buffer.WriteString(`;
+            --text-color-1: `)
+	_buffer.WriteString(settings.TextColor1)
+	_buffer.WriteString(`;
+            --text-color-2: `)
+	_buffer.WriteString(settings.TextColor2)
+	_buffer.WriteString(`;
+            --text-color-3: `)
+	_buffer.WriteString(settings.TextColor3)
+	_buffer.WriteString(`;
+        }
+    </style>
 </head>
 <body>
     <div></div>
@@ -52,7 +79,19 @@ func Homepage(header, message string, w io.Writer) {
         </div>
         <nav class="main-nav">
             <div class="nav-icon-container nav-icon-container-not-clicked">
-                <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	if settings.Logo != "" {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/images/`)
+		_buffer.WriteString(settings.Logo)
+		_buffer.WriteString(`" />
+                `)
+	} else {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	}
+	_buffer.WriteString(`
             </div>
             <ul class="nav-items">
                 <li class="nav-item">
@@ -115,13 +154,79 @@ func Homepage(header, message string, w io.Writer) {
         `)
 	_buffer.WriteString(`
     <div class="homepage-container">
-        <div class="page-section">
-            <h1 class="homepage-heading">`)
-	hero.EscapeHTML(header, _buffer)
-	_buffer.WriteString(`</h1>
-            <p class="homepage-content">`)
-	hero.EscapeHTML(message, _buffer)
-	_buffer.WriteString(`</p>
+        `)
+	for _, section := range page.Sections {
+
+		sectionType := section.GetType()
+		if sectionType == "text" {
+			textSection, _ := section.(models.TextSection)
+			header := textSection.Header
+			content := textSection.Content
+			if true {
+
+				_buffer.WriteString(`
+                <div class="page-section">
+                    <h3 class="homepage-heading">`)
+				hero.EscapeHTML(header, _buffer)
+				_buffer.WriteString(`</h3>
+                    
+                    <p class="homepage-content">`)
+				hero.EscapeHTML(content, _buffer)
+				_buffer.WriteString(`</p>
+                </div>
+            `)
+			}
+		}
+
+		if sectionType == "stack" {
+			stackSection, _ := section.(models.StackSection)
+			name := stackSection.Name
+			tagSections := stackSection.TagSections
+
+			_buffer.WriteString(`
+            <div class="page-section">
+                <h3 class="homepage-heading">`)
+			hero.EscapeHTML(name, _buffer)
+			_buffer.WriteString(`</h3>
+                `)
+
+			for _, tagSection := range tagSections {
+				name := tagSection.Name
+
+				_buffer.WriteString(`
+                <div class="homepage-stack">
+                    <div class="icon-container-label" >`)
+				hero.EscapeHTML(name, _buffer)
+				_buffer.WriteString(`</div>
+                    <div class="icon-list">
+                        `)
+
+				tags := tagSection.Tags
+				for _, tag := range tags {
+
+					_buffer.WriteString(`
+                            <div class="icon-container">
+                                <img src="/content/images/`)
+					hero.EscapeHTML(tag.Thumbnail, _buffer)
+					_buffer.WriteString(`" class="tech-icon"/>
+                            </div>
+                        `)
+
+				}
+
+				_buffer.WriteString(`
+                    </div>
+                </div>
+                `)
+			}
+			_buffer.WriteString(`
+            </div>
+            `)
+		}
+	}
+	_buffer.WriteString(`
+        <!-- <div class="page-section">
+            
         </div>
         <div class="page-section">
             <h3 class="homepage-heading">About Me</h3>
@@ -230,14 +335,14 @@ func Homepage(header, message string, w io.Writer) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 `)
 
 	_buffer.WriteString(`
     </main>
     <footer>
-        
+        This site or product includes IP2Location LITE data available from <a href="https://lite.ip2location.com">https://lite.ip2location.com</a>.
     </footer>
     <script>
         initMobileMenu();

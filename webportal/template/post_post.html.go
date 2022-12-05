@@ -10,7 +10,7 @@ import (
 	"github.com/shiyanhui/hero"
 )
 
-func HandlePost(links []models.Link, post models.Post, w io.Writer) {
+func HandlePost(settings models.Settings, links []models.Link, post models.Post, w io.Writer) {
 	_buffer := hero.GetBuffer()
 	defer hero.PutBuffer(_buffer)
 	_buffer.WriteString(`<!DOCTYPE html>
@@ -35,7 +35,33 @@ func HandlePost(links []models.Link, post models.Post, w io.Writer) {
     <link rel="stylesheet" href="/content/knowledge-timeline.css">
     <link rel="stylesheet" href="/content/edithomepage.css">
     <link rel="stylesheet" href="/content/dashboard.css">
+    <link rel="stylesheet" href="/content/tag-list-editor.css">
     <script src="/content/js/nav.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <script src="/content/js/modelviewer/stl_viewer.min.js"></script>
+    <script src="/content/js/modelviewer.js"></script>
+    <style>
+        :root {
+            --bg-color-1: `)
+	_buffer.WriteString(settings.BackgroundColor1)
+	_buffer.WriteString(`;
+            --bg-color-2: `)
+	_buffer.WriteString(settings.BackgroundColor2)
+	_buffer.WriteString(`;
+            --bg-color-3: `)
+	_buffer.WriteString(settings.BackgroundColor3)
+	_buffer.WriteString(`;
+            --text-color-1: `)
+	_buffer.WriteString(settings.TextColor1)
+	_buffer.WriteString(`;
+            --text-color-2: `)
+	_buffer.WriteString(settings.TextColor2)
+	_buffer.WriteString(`;
+            --text-color-3: `)
+	_buffer.WriteString(settings.TextColor3)
+	_buffer.WriteString(`;
+        }
+    </style>
 </head>
 <body>
     <div></div>
@@ -53,7 +79,19 @@ func HandlePost(links []models.Link, post models.Post, w io.Writer) {
         </div>
         <nav class="main-nav">
             <div class="nav-icon-container nav-icon-container-not-clicked">
-                <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	if settings.Logo != "" {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/images/`)
+		_buffer.WriteString(settings.Logo)
+		_buffer.WriteString(`" />
+                `)
+	} else {
+		_buffer.WriteString(`
+                    <img class="nav-icon" src="/content/doublen987-logo-5.svg" />
+                `)
+	}
+	_buffer.WriteString(`
             </div>
             <ul class="nav-items">
                 <li class="nav-item">
@@ -149,7 +187,7 @@ func HandlePost(links []models.Link, post models.Post, w io.Writer) {
 	_buffer.WriteString(`
     </main>
     <footer>
-        
+        This site or product includes IP2Location LITE data available from <a href="https://lite.ip2location.com">https://lite.ip2location.com</a>.
     </footer>
     <script>
         initMobileMenu();
