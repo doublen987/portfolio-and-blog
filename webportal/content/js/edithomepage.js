@@ -1,17 +1,21 @@
 let sectionid = 0;
 let pages = []
+let readers = {}
 
-function readURL(input) {
+function readURL(input, id) {
     return () => {
         if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            let thumbnailImg = document.getElementById("post-thumbnail-image");
-            thumbnailImg.src = e.target.result;
-            thumbnailImg.width = 150;
-            thumbnailImg.height = 200;
-        };
-        reader.readAsDataURL(input.files[0]);
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                let thumbnailImg = document.getElementById("homepage-section-image-"+id);
+                thumbnailImg.src = e.target.result;
+                thumbnailImg.width = 150;
+                thumbnailImg.height = 200;
+                let container = document.getElementById('section-container-'+id)
+                container.getElementsByClassName('homepage-image-filename')[0].innerHTML = input.files[0].name
+            };
+            reader.readAsDataURL(input.files[0]);
+            readers[id] = reader
         }
     }
 }
@@ -140,29 +144,41 @@ function onCLickAddSection(section) {
                 form.appendChild(container)
             break;
             case "image": {
+                let sectionFilename = section.filename? section.filename : ""
                 let container = document.createElement("div")
                 container.classList.add("section-container")
                 container.classList.add("image-section-section-container")
                 container.id = ("section-container-"+ id)
                 container.innerHTML = `
                 <div class="homepage-section-preview" id="homepage-section-preview-${id}">
-                    <img class="homepage-section-image" id="homepage-section-image-${id}" src="">
-                </div>
-                <div class="homepage-section-editor" id="homepage-section-editor-${id}">
                     <div class="homepage-section-section-container-x">
                         <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg>
-                    </div>
+                    </div>    
+                    <img class="homepage-section-image" id="homepage-section-image-${id}" src="/content/images/${section.filename}">
+                    
                     <div>
                         <label for="homepage-section-editor-input" class="editor-label">Image: </label>
                         <input name="homepage-section-editor-input" type="file" accept="image/*" id="homepage-section-editor-input-${id}"></input>
+                        <div class="homepage-image-section-id" >${id}</div>
+                        <div class="homepage-image-filename" >${sectionFilename}</div>
                     </div>    
                 </div>`
 
 
-                container.getElementsByClassName("homepage-section-section-container-x")[0].addEventListener("click", onClickSectionContainerX(id))
-                container.getElementsByClassName("homepage-section-preview")[0].addEventListener("click", onClickSectionContainer(id))
+                // container.getElementsByClassName("homepage-section-section-container-x")[0].addEventListener("click", onClickSectionContainerX(id))
+                // container.getElementsByClassName("homepage-section-preview")[0].addEventListener("click", onClickSectionContainer(id))
                 let form = document.getElementById("form1")
                 form.appendChild(container)
+
+
+                var thumbnailImg = document.getElementById(`homepage-section-image-${id}`);
+                console.log("bla")
+                thumbnailImg.width = 150;
+                thumbnailImg.height = 200;
+                thumbnailImg.onerror = onImageError;
+
+                let thumbnailInput = document.getElementById(`homepage-section-editor-input-${id}`);
+                thumbnailInput.onchange = readURL(thumbnailInput, id);
             }
             break;
             case "stack": {
@@ -184,7 +200,9 @@ function onCLickAddSection(section) {
                     <button id="add-tag-section-button">Add tag section</button>
                 </div>`
 
-
+                if (!section.tagssections) {
+                    section.tagssections = []
+                }
                 
                 let form = document.getElementById("form1")
                 form.appendChild(container)
@@ -202,8 +220,8 @@ function onCLickAddSection(section) {
                 }
             }
             break;
-            
             case "3dmodel": {
+                let sectionFilename = section.filename? section.filename : ""
                 let container = document.createElement("div")
                 container.classList.add("section-container")
                 container.classList.add("3dmodel-section-section-container")
@@ -217,6 +235,8 @@ function onCLickAddSection(section) {
                 <div>
                     <label for="homepage-section-editor-input" class="editor-label">Model: </label>
                     <input name="homepage-section-editor-input" type="file" id="homepage-section-editor-input-${id}"></input>
+                    <div class="homepage-3dmodel-section-id" >${id}</div>
+                    <div class="homepage-3dmodel-filename" >${sectionFilename}</div>
                 </div>`
 
 
@@ -225,10 +245,15 @@ function onCLickAddSection(section) {
 
                 let form = document.getElementById("form1")
                 form.appendChild(container)
+                console.log(section)
+                if(section.filename) {
+                    let stl_viewer = init3dViewer(`homepage-section-3dmodel-${id}`, '/content/images/'+section.filename)
+                    stl_viewer.add_model({id:1, filename: '/content/images/'+section.filename})
+                }
 
                 document.getElementById(`homepage-section-editor-input-${id}`).addEventListener("change", function() {
                     const file = this.files[0];
-                    const viewer = document.getElementById(`homepage-section-3dmodel-${id}`);
+                    ///const viewer = document.getElementById(`homepage-section-3dmodel-${id}`);
                   
                     if (!file) return;
                   
@@ -239,9 +264,10 @@ function onCLickAddSection(section) {
                     //   const texture = await viewer.createTexture(reader.result);
 
                        console.log(reader.result)
-                       stl_viewer = init3dViewer(`homepage-section-3dmodel-${id}`)
+                       let stl_viewer = init3dViewer(`homepage-section-3dmodel-${id}`)
                        stl_viewer.add_model({local_file:file});
-                    //   viewer.model.materials[0].normalTexture.setTexture(texture);
+                       readers[id] = reader
+                       container.getElementsByClassName('homepage-3dmodel-filename')[0].innerHTML = file.name
                     });
                     reader.addEventListener('progress', () => {
                         console.log("bla")
@@ -337,6 +363,7 @@ function onClickTagSectionName(id) {
         input.style.display = "unset"
     }
 }
+
 function addTagToTagsSectionItem(tag) {
     return (e) => {
         if(e) {
@@ -431,6 +458,16 @@ function showSectionTypeModal() {
     typeModal.style.display = "unset"
 }
 
+function addTextSectionToSaveList(sections, currentsection) {
+    let header = currentsection.getElementsByClassName("homepage-section-preview-header")[0].innerHTML
+    let content = currentsection.getElementsByClassName("homepage-section-preview-content")[0].innerHTML
+    sections.push({
+        type: "text",
+        header:header,
+        content:  content
+    })
+}
+
 function addStackSectionToSaveList(sections, currentsection) {
     
     let tagGroupContainer = currentsection.getElementsByClassName("tag-group-container")
@@ -470,19 +507,30 @@ function addStackSectionToSaveList(sections, currentsection) {
     })
 }
 
-function addTextSectionToSaveList(sections, currentsection) {
-    let header = currentsection.getElementsByClassName("homepage-section-preview-header")[0]
-    let content = currentsection.getElementsByClassName("homepage-section-preview-content")[0]
+function addImageSectionToSaveList(sections, currentsection) {
+    let filename = currentsection.getElementsByClassName("homepage-image-filename")[0].innerHTML
+    let id = currentsection.getElementsByClassName("homepage-image-section-id")[0].innerHTML
     sections.push({
-        type: "text",
-        header: header.innerHTML,
-        content: content.innerHTML
+        type: "image",
+        filename:filename,
+        bytes: readers[id] && readers[id].result? readers[id].result.replace(new RegExp("data:image/(png|jpg|jpeg);base64,"),'') : []
+    })
+}
+
+function add3DModelSectionToSaveList(sections, currentsection) {
+    let filename = currentsection.getElementsByClassName("homepage-3dmodel-filename")[0].innerHTML
+    let id = currentsection.getElementsByClassName("homepage-3dmodel-section-id")[0].innerHTML
+    sections.push({
+        type: "3dmodel",
+        filename: filename,
+        bytes: readers[id] && readers[id].result? readers[id].result.replace(new RegExp("data:application/x-tgif;base64,"),'') : []
     })
 }
 
 function onClickRemoveSection(id) {
     return () => {
         document.getElementById("section-container-"+id).remove()
+        readers[id] = undefined
     }
 }
 
@@ -502,6 +550,12 @@ function onSave() {
         }
         if(currentsection.classList.contains("stack-section-section-container")) {
             addStackSectionToSaveList(sections, currentsection)
+        }
+        if(currentsection.classList.contains("image-section-section-container")) {
+            addImageSectionToSaveList(sections, currentsection)
+        }
+        if(currentsection.classList.contains("3dmodel-section-section-container")) {
+            add3DModelSectionToSaveList(sections, currentsection)
         }
 
     }
@@ -564,17 +618,26 @@ function convertMapToSection(map) {
 }
 
 function showPage(page) {
+    
+    console.log(page.sections)
     for(let i = 0; i < page.sections.length; i++) {
         onCLickAddSection(convertMapToSection(page.sections[i]))()
     }
 }
 
 function onChangeSelectedPage(e) {
+    let sections  = document.querySelectorAll(".section-container")
+    let seclen = sections.length
+    sections.forEach(section => {
+        console.log(sections)
+        section.remove()
+    })
     let selection = e.target
     console.log(selection)
     let selectedPageID = selection.value
     for(let i = 0; i < pages.length; i++) {
         if(pages[i].ID == selectedPageID) {
+            
             showPage(pages[i])
             let pageNameInput = document.getElementById("page-name-input")
             pageNameInput.value = pages[i].name

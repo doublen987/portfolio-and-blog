@@ -2,7 +2,7 @@
 <%~ "index.html" %>
 <%@ body { %>
     <div class="homepage-container">
-        <% for _, section := range page.Sections { %>
+        <% for index, section := range page.Sections { %>
             <% 
                 sectionType := section.GetType()
                 if sectionType == "text" {
@@ -17,37 +17,56 @@
                     <p class="homepage-content"><%=s content %></p>
                 </div>
             <%      }
-                } %>
-            <%
-            if sectionType == "stack" {
-                stackSection, _ := section.(models.StackSection)
-                name := stackSection.Name
-                tagSections := stackSection.TagSections
+                } 
             %>
-            <div class="page-section">
-                <h3 class="homepage-heading"><%=s name %></h3>
-                <%
-                    for _, tagSection := range tagSections {
-                        name := tagSection.Name
-                %>
-                <div class="homepage-stack">
-                    <div class="icon-container-label" ><%=s name %></div>
-                    <div class="icon-list">
-                        <%
-                            tags := tagSection.Tags
-                            for _, tag := range tags {
-                        %>
-                            <div class="icon-container">
-                                <img src="/content/images/<%=s tag.Thumbnail %>" class="tech-icon"/>
-                            </div>
-                        <%
-                            }
-                        %>
+            <%
+                if sectionType == "stack" {
+                    stackSection, _ := section.(models.StackSection)
+                    name := stackSection.Name
+                    tagSections := stackSection.TagSections
+            %>
+                <div class="page-section">
+                    <h3 class="homepage-heading"><%=s name %></h3>
+                    <%
+                        for _, tagSection := range tagSections {
+                            name := tagSection.Name
+                    %>
+                    <div class="homepage-stack">
+                        <div class="icon-container-label" ><%=s name %></div>
+                        <div class="icon-list">
+                            <%
+                                tags := tagSection.Tags
+                                for _, tag := range tags {
+                            %>
+                                <div class="icon-container">
+                                    <img src="/content/images/<%=s tag.Thumbnail %>" class="tech-icon"/>
+                                </div>
+                            <%
+                                }
+                            %>
+                        </div>
                     </div>
+                    <% } %>
                 </div>
-                <% } %>
-            </div>
-            <% } %>
+            <%  } %>
+            <%
+                if sectionType == "image" {
+                    imageSection, _ := section.(models.ImageSection)
+            %>
+                <div class="page-section">
+                    <img src="/content/images/<%=s imageSection.Image %>" class="tech-icon"/>
+                </div>
+            <%  } %>
+            <%
+                if sectionType == "3dmodel" {
+                    modelSection, _ := section.(models.ModelSection)
+                    filename := modelSection.FileName
+            %>
+                <div class="page-section model-section">
+                    <div class="section-model" id="section-model-<%=i index %>"></div>
+                   <div class="model-filename" style="display: none;"><%=s filename %></div>
+                </div>
+            <%  } %>
         <% } %>
         <!-- <div class="page-section">
             
@@ -161,4 +180,17 @@
             </div>
         </div> -->
     </div>
+    <script>
+        window.onload = function() {
+            let modelSections = document.getElementsByClassName("model-section")
+            for(let i = 0; i < modelSections.length; i++) {
+                let fileName = modelSections[i].getElementsByClassName("model-filename")[0].innerHTML
+                let sectionModel = modelSections[i].getElementsByClassName("section-model")[0]
+                let id = sectionModel.id
+                var stl_viewer = init3dViewer(id)
+                stl_viewer.add_model({id:i, filename: '/content/images/'+fileName})
+            }
+        }
+        
+    </script>
 <% } %>

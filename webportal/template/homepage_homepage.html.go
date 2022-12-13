@@ -155,7 +155,7 @@ func Homepage(settings models.Settings, page models.Page2, w io.Writer) {
 	_buffer.WriteString(`
     <div class="homepage-container">
         `)
-	for _, section := range page.Sections {
+	for index, section := range page.Sections {
 
 		sectionType := section.GetType()
 		if sectionType == "text" {
@@ -184,43 +184,71 @@ func Homepage(settings models.Settings, page models.Page2, w io.Writer) {
 			tagSections := stackSection.TagSections
 
 			_buffer.WriteString(`
-            <div class="page-section">
-                <h3 class="homepage-heading">`)
+                <div class="page-section">
+                    <h3 class="homepage-heading">`)
 			hero.EscapeHTML(name, _buffer)
 			_buffer.WriteString(`</h3>
-                `)
+                    `)
 
 			for _, tagSection := range tagSections {
 				name := tagSection.Name
 
 				_buffer.WriteString(`
-                <div class="homepage-stack">
-                    <div class="icon-container-label" >`)
+                    <div class="homepage-stack">
+                        <div class="icon-container-label" >`)
 				hero.EscapeHTML(name, _buffer)
 				_buffer.WriteString(`</div>
-                    <div class="icon-list">
-                        `)
+                        <div class="icon-list">
+                            `)
 
 				tags := tagSection.Tags
 				for _, tag := range tags {
 
 					_buffer.WriteString(`
-                            <div class="icon-container">
-                                <img src="/content/images/`)
+                                <div class="icon-container">
+                                    <img src="/content/images/`)
 					hero.EscapeHTML(tag.Thumbnail, _buffer)
 					_buffer.WriteString(`" class="tech-icon"/>
-                            </div>
-                        `)
+                                </div>
+                            `)
 
 				}
 
 				_buffer.WriteString(`
+                        </div>
                     </div>
-                </div>
-                `)
+                    `)
 			}
 			_buffer.WriteString(`
-            </div>
+                </div>
+            `)
+		}
+
+		if sectionType == "image" {
+			imageSection, _ := section.(models.ImageSection)
+
+			_buffer.WriteString(`
+                <div class="page-section">
+                    <img src="/content/images/`)
+			hero.EscapeHTML(imageSection.Image, _buffer)
+			_buffer.WriteString(`" class="tech-icon"/>
+                </div>
+            `)
+		}
+
+		if sectionType == "3dmodel" {
+			modelSection, _ := section.(models.ModelSection)
+			filename := modelSection.FileName
+
+			_buffer.WriteString(`
+                <div class="page-section model-section">
+                    <div class="section-model" id="section-model-`)
+			hero.FormatInt(int64(index), _buffer)
+			_buffer.WriteString(`"></div>
+                   <div class="model-filename" style="display: none;">`)
+			hero.EscapeHTML(filename, _buffer)
+			_buffer.WriteString(`</div>
+                </div>
             `)
 		}
 	}
@@ -337,6 +365,19 @@ func Homepage(settings models.Settings, page models.Page2, w io.Writer) {
             </div>
         </div> -->
     </div>
+    <script>
+        window.onload = function() {
+            let modelSections = document.getElementsByClassName("model-section")
+            for(let i = 0; i < modelSections.length; i++) {
+                let fileName = modelSections[i].getElementsByClassName("model-filename")[0].innerHTML
+                let sectionModel = modelSections[i].getElementsByClassName("section-model")[0]
+                let id = sectionModel.id
+                var stl_viewer = init3dViewer(id)
+                stl_viewer.add_model({id:i, filename: '/content/images/'+fileName})
+            }
+        }
+        
+    </script>
 `)
 
 	_buffer.WriteString(`

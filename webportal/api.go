@@ -2,6 +2,7 @@ package webportal
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -39,6 +40,26 @@ type ImageResponse struct {
 type SectionRequest struct {
 	SelectedPageID string        `json:"selectedPageID"`
 	Sections       []interface{} `json:"sections"`
+}
+
+type TextSectionRequest struct {
+	Header  string `json:"header"`
+	Content string `json:"content"`
+}
+
+type StackSectionRequest struct {
+	Header      string `json:"header"`
+	TagSections string `json:"content"`
+}
+
+type ModelSectionRequest struct {
+	Filename string `json:"filename"`
+	Bytes    string `json:"bytes"`
+}
+
+type ImageSectionRequest struct {
+	Filename string `json:"filename"`
+	Bytes    string `json:"bytes"`
 }
 
 type SettingsReq struct {
@@ -206,7 +227,18 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				})
 			}
 			if bla["type"] == "image" {
+				filename, _ := bla["filename"].(string)
 
+				page.Sections = append(page.Sections, models.ImageSection{
+					Image: filename,
+				})
+			}
+			if bla["type"] == "3dmodel" {
+				filename, _ := bla["filename"].(string)
+
+				page.Sections = append(page.Sections, models.ModelSection{
+					FileName: filename,
+				})
 			}
 		}
 		template.Homepage(settings, page, w)
@@ -430,9 +462,123 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		err := json.NewDecoder(req.Body).Decode(&page)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
-		fmt.Println(page.Sections)
+		//fmt.Println(reflect.TypeOf(page.Sections[0]["type"]))
+
+		for index, section := range page.Sections {
+			sectionMap := section.(map[string]interface{})
+			st, _ := sectionMap["type"].(string)
+			fmt.Println(st)
+			switch st {
+			case "3dmodel":
+				{
+					filename, _ := sectionMap["filename"].(string)
+					bytesStr, _ := sectionMap["bytes"].(string)
+
+					bytes, err := base64.StdEncoding.DecodeString(bytesStr)
+					if err != nil {
+						fmt.Println(err)
+						http.Error(w, err.Error(), http.StatusBadRequest)
+						return
+					}
+
+					bla := make(map[string]string)
+					if len(bytes) != 0 {
+						newFileName, err := fh.AddFile(bytes, filename)
+						if err != nil {
+							fmt.Println(err)
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+						bla["filename"] = newFileName
+					} else {
+						bla["filename"] = filename
+					}
+
+					bla["type"] = st
+					page.Sections[index] = bla
+				}
+				break
+			case "text":
+				{
+					header, _ := sectionMap["header"].(string)
+					content, _ := sectionMap["content"].(string)
+					fmt.Println(header)
+					fmt.Println(content)
+				}
+				break
+			case "stack":
+				{
+					name, _ := sectionMap["name"].(string)
+					itagssections, _ := sectionMap["tagssections"].([]interface{})
+					tagssections := []models.TagSection{}
+					for _, itag := range itagssections {
+						bla := itag.(map[string]interface{})
+
+						tags := []models.Tag{}
+
+						tagsSlice := bla["tags"].([]interface{})
+						for _, tagInSlice := range tagsSlice {
+							tagsMap := tagInSlice.(map[string]interface{})
+							tags = append(tags, models.Tag{
+								ID:        tagsMap["ID"].(string),
+								Name:      tagsMap["name"].(string),
+								Thumbnail: tagsMap["thumbnail"].(string),
+							})
+						}
+						tagssections = append(tagssections, models.TagSection{
+							Name: bla["name"].(string),
+							Tags: tags,
+						})
+
+					}
+					fmt.Println(name)
+					fmt.Println(len(tagssections))
+
+				}
+				break
+			case "image":
+				{
+					filename, _ := sectionMap["filename"].(string)
+					bytesStr, _ := sectionMap["bytes"].(string)
+
+					bytes, err := base64.StdEncoding.DecodeString(bytesStr)
+					if err != nil {
+						fmt.Println(err)
+						http.Error(w, err.Error(), http.StatusBadRequest)
+						return
+					}
+
+					bla := make(map[string]string)
+					if len(bytes) != 0 {
+						newFileName, err := fh.AddFile(bytes, filename)
+						if err != nil {
+							fmt.Println(err)
+							http.Error(w, err.Error(), http.StatusBadRequest)
+							return
+						}
+						bla["filename"] = newFileName
+					} else {
+						bla["filename"] = filename
+					}
+
+					bla["type"] = st
+					page.Sections[index] = bla
+
+					fmt.Println(filename)
+					fmt.Println(len(bytes))
+				}
+				break
+			default:
+				{
+
+				}
+			}
+		}
+
+		fmt.Println(page.Sections...)
 
 		ctx := req.Context()
 		if page.ID == "" || page.ID == "None" {

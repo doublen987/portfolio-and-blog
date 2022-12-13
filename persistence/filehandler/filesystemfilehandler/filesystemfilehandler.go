@@ -61,3 +61,17 @@ func (fh FileSystemFileHandler) GetFile(fileName string) ([]byte, error) {
 	fmt.Printf("Sucessfully retrieving file %s %d\n", fileName, len(retrievedBytes))
 	return retrievedBytes, nil
 }
+
+func (fh FileSystemFileHandler) RemoveFile(fileName string) error {
+	fmt.Println("Uploading File")
+
+	err := os.Remove("webportal/content/images/" + fileName)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	fmt.Printf("Sucessfully deleted file %s\n", fileName)
+	return nil
+}

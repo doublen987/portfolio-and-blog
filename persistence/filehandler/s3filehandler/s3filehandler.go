@@ -107,3 +107,13 @@ func (fh S3FileHandler) GetFile(filename string) ([]byte, error) {
 
 	return imageBytes, nil
 }
+
+func (fh S3FileHandler) RemoveFile(filename string) error {
+	input := s3.DeleteObjectInput{
+		Bucket: aws.String(fh.imagesBucket),
+		Key:    aws.String(filename),
+	}
+
+	_, err := fh.client.DeleteObject(context.TODO(), &input)
+	return err
+}

@@ -94,6 +94,19 @@ func (ss TextSection) GetID() string {
 	return ss.ID
 }
 
+type ModelSection struct {
+	ID       string `bson:"ID" json:"ID"`
+	FileName string `bson:"filename" json:"filename"`
+}
+
+func (ss ModelSection) GetID() string {
+	return ss.ID
+}
+
+func (ms ModelSection) GetType() string {
+	return "3dmodel"
+}
+
 type ImageSection struct {
 	ID    string `bson:"ID" json:"ID"`
 	Image string `bson:"image" json:"image"`

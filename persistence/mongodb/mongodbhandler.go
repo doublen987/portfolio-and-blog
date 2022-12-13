@@ -981,7 +981,6 @@ func (handler *MongodbHandler) GetPages(ctx context.Context) ([]models.Page, err
 	//fmt.Println(tagmap)
 	cursor.All(ctx, &pages)
 	defer cursor.Close(ctx)
-	fmt.Println(pages)
 	return pages, err
 }
 func (handler *MongodbHandler) GetPage(ctx context.Context, id string) (models.Page, error) {

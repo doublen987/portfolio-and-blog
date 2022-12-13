@@ -14,6 +14,7 @@ const (
 
 type FileHandler interface {
 	AddFile(file []byte, filename string) (string, error)
+	RemoveFile(filename string) error
 	GetFile(fileName string) ([]byte, error)
 }
 
