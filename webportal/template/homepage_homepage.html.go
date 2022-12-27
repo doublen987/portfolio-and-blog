@@ -165,14 +165,14 @@ func Homepage(settings models.Settings, page models.Page2, w io.Writer) {
 			if true {
 
 				_buffer.WriteString(`
-                <div class="page-section">
+                <div class="page-section text-section">
                     <h3 class="homepage-heading">`)
-				hero.EscapeHTML(header, _buffer)
+				_buffer.WriteString(header)
 				_buffer.WriteString(`</h3>
                     
-                    <p class="homepage-content">`)
-				hero.EscapeHTML(content, _buffer)
-				_buffer.WriteString(`</p>
+                    <div class="homepage-content">`)
+				_buffer.WriteString(content)
+				_buffer.WriteString(`</div>
                 </div>
             `)
 			}
@@ -184,7 +184,7 @@ func Homepage(settings models.Settings, page models.Page2, w io.Writer) {
 			tagSections := stackSection.TagSections
 
 			_buffer.WriteString(`
-                <div class="page-section">
+                <div class="page-section stack-section">
                     <h3 class="homepage-heading">`)
 			hero.EscapeHTML(name, _buffer)
 			_buffer.WriteString(`</h3>
@@ -228,7 +228,7 @@ func Homepage(settings models.Settings, page models.Page2, w io.Writer) {
 			imageSection, _ := section.(models.ImageSection)
 
 			_buffer.WriteString(`
-                <div class="page-section">
+                <div class="page-section image-section">
                     <img src="/content/images/`)
 			hero.EscapeHTML(imageSection.Image, _buffer)
 			_buffer.WriteString(`" class="tech-icon"/>

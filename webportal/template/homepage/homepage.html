@@ -11,10 +11,10 @@
                     content := textSection.Content
                     if true {
             %>
-                <div class="page-section">
-                    <h3 class="homepage-heading"><%=s header %></h3>
+                <div class="page-section text-section">
+                    <h3 class="homepage-heading"><%==s header %></h3>
                     
-                    <p class="homepage-content"><%=s content %></p>
+                    <div class="homepage-content"><%==s content %></div>
                 </div>
             <%      }
                 } 
@@ -25,7 +25,7 @@
                     name := stackSection.Name
                     tagSections := stackSection.TagSections
             %>
-                <div class="page-section">
+                <div class="page-section stack-section">
                     <h3 class="homepage-heading"><%=s name %></h3>
                     <%
                         for _, tagSection := range tagSections {
@@ -53,7 +53,7 @@
                 if sectionType == "image" {
                     imageSection, _ := section.(models.ImageSection)
             %>
-                <div class="page-section">
+                <div class="page-section image-section">
                     <img src="/content/images/<%=s imageSection.Image %>" class="tech-icon"/>
                 </div>
             <%  } %>
