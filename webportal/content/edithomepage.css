@@ -28,6 +28,11 @@
     font-family: "Bangers", "cursive";
     color: #d08a12;
     font-size: 20px;
+    height: 20px;
+    width: 100%;
+    background-color: #33112b;
+    margin-top: 10px;
+    border-radius: 5px;
 }
 
 
@@ -35,6 +40,11 @@
     font-family: "Bangers", "cursive";
     font-size: 20px;
     color: #fbc23f;
+    height: 120px;
+    width: 100%;
+    background-color: #33112b;
+    margin-top: 10px;
+    border-radius: 5px;
 }
 
 .section-image-input-label {
@@ -91,6 +101,11 @@
     height: 40px;
 }
 
+.tag-section-section-container {
+    display: flex;
+    flex-direction: row;
+}
+
 .tag-section-tags {
     display: flex;
     flex-direction: row;
@@ -134,4 +149,31 @@ input {
 
 .chart {
     height: 300px;
+}
+
+.text-section-input-header {
+    background-color: #33112b;
+}
+
+.tag-section-input-x {
+    width: 24px;
+    display: inline;
+}
+
+.tag-section-input {
+    width: 150px;
+    background-color: #33112b;
+}
+
+.tags-section-header-preview {
+    background-color: #33112b;
+    width: 150px;
+    height: 30px;
+    color: #d08a12;
+    vertical-align: middle;
+    padding-left: 10px;
+    padding-top: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 5px;
 }

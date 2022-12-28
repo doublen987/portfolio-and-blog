@@ -294,7 +294,7 @@ function onCLickAddSection(section) {
 function onExitSectionNameInput(id) {
     return () => {
         let name = document.getElementById("tag-section-name-"+id)
-        name.style.display = "unset"
+        name.style.display = "block"
         let inputContainer = document.getElementById("tag-section-section-container-"+id)
         inputContainer.style.display = "none"
         let input = document.getElementById("tag-section-input-"+id)
@@ -314,7 +314,7 @@ function addTagSection(sectionid) {
             <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg>
         </div>
         <div class="tag-section-name-container">
-            <div class="homepage-section-preview-header" id="tag-section-name-${id}">Section</div>
+            <div class="tags-section-header-preview" id="tag-section-name-${id}">Section</div>
             <div style="display:none;" class="tag-section-section-container" id="tag-section-section-container-${id}">
                 <div class="tag-section-input-x" id="tag-section-input-x-${id}">
                     <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg>
@@ -478,7 +478,7 @@ function addStackSectionToSaveList(sections, currentsection) {
     ]
 
     for(let i = 0; i < tagGroupContainer.length; i++) {
-        header = tagGroupContainer[i].getElementsByClassName("homepage-section-preview-header")[0]
+        header = tagGroupContainer[i].getElementsByClassName("tags-section-header-preview")[0]
         let tagsHTML = tagGroupContainer[i].getElementsByClassName("tag-container")
         console.log(tagsHTML)
         let tags = []
