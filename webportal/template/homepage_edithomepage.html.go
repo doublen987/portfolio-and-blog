@@ -155,6 +155,7 @@ func HandleEditHomePage(settings models.Settings, header string, pages []models.
 	_buffer.WriteString(`
     <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="/content/js/he.js"></script>
     <script src="/content/js/edithomepage.js"></script>
     <link rel="stylesheet" href="/content/editpage.css">
@@ -188,7 +189,9 @@ func HandleEditHomePage(settings models.Settings, header string, pages []models.
             </div>
             <div class="sections-header">Sections:</div>
             <form onsubmit="event.preventDefault()" id="form1" action="/homepage/edit" enctype="multipart/form-data" method="POST">
-                
+                <div id="sections-container">
+
+                </div>
             </form>
             <button id="show-type-modal-button">Add section</button>
             <button id="save-homepage-sections-button">Save</button>

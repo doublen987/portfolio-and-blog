@@ -39,8 +39,16 @@ function onClickSectionContainer(id) {
         let editor = inputContianer.getElementsByClassName("homepage-section-editor")[0]
         editor.style.display = "unset"
 
+        let headerinput = document.getElementById("section-header-input-"+id)
+        let contentinput = document.getElementById("section-content-input-"+id)
+
         
-        initTinyMCEForHompeageSection("section-content-input-"+id)
+
+        initTinyMCEForHompeageSection("section-content-input-"+id, id)
+
+
+        let headerpreview = document.getElementById("header-"+id)
+        headerinput.value = headerpreview.innerText
     }
 }
 
@@ -126,7 +134,7 @@ function onCLickAddSection(section) {
                 let previewtitle = document.createElement("div")
                 previewtitle.classList.add("homepage-section-preview-header")
                 previewtitle.id = "header-"+id
-                previewtitle.innerHTML = section.content? section.content : "Header"
+                previewtitle.innerHTML = section.header? section.header : "Header"
                 let previewcontent = document.createElement("div")
                 previewcontent.classList.add("homepage-section-preview-content")
                 previewcontent.id = "content-"+id
@@ -140,7 +148,7 @@ function onCLickAddSection(section) {
 
                 previewcontainer.addEventListener("click", onClickSectionContainer(id))
 
-                let form = document.getElementById("form1")
+                let form = document.getElementById("sections-container")
                 form.appendChild(container)
             break;
             case "image": {
@@ -167,7 +175,7 @@ function onCLickAddSection(section) {
 
                 // container.getElementsByClassName("homepage-section-section-container-x")[0].addEventListener("click", onClickSectionContainerX(id))
                 // container.getElementsByClassName("homepage-section-preview")[0].addEventListener("click", onClickSectionContainer(id))
-                let form = document.getElementById("form1")
+                let form = document.getElementById("sections-container")
                 form.appendChild(container)
 
 
@@ -204,7 +212,7 @@ function onCLickAddSection(section) {
                     section.tagssections = []
                 }
                 
-                let form = document.getElementById("form1")
+                let form = document.getElementById("sections-container")
                 form.appendChild(container)
 
                 //container.getElementsByClassName("homepage-section-section-container-x")[0].addEventListener("click", onClickSectionContainerX(id))
@@ -212,10 +220,16 @@ function onCLickAddSection(section) {
 
                 document.getElementById("remove-section-button-"+id).addEventListener("click", onClickRemoveSection(id))    
 
+                console.log(section.tagssections)
                 for(let i = 0; i < section.tagssections.length; i++) {
-                    let tagSectionID = addTagSection(id)()
-                    for(let j = 0; j <  section.tagssections[i].tags; j++) {
-                        addTagToTagsSectionItem(section.tagssections[i].tags[j], tagSectionID)
+
+                    let tagssection = convertMapToSection(section.tagssections[i])
+                    console.log(tagssection)
+                    let tagSectionID = addTagSection(id, tagssection.name)()
+                    for(let j = 0; j <  tagssection.tags.length; j++) {
+                        console.log(convertMapToSection(tagssection.tags[j]))
+                        sectionid = tagSectionID
+                        addTagToTagsSectionItem(convertMapToSection(tagssection.tags[j]))()
                     } 
                 }
             }
@@ -243,7 +257,7 @@ function onCLickAddSection(section) {
                 // container.getElementsByClassName("homepage-section-section-container-x")[0].addEventListener("click", onClickSectionContainerX(id))
                 // container.getElementsByClassName("homepage-section-preview")[0].addEventListener("click", onClickSectionContainer(id))
 
-                let form = document.getElementById("form1")
+                let form = document.getElementById("sections-container")
                 form.appendChild(container)
                 console.log(section)
                 if(section.filename) {
@@ -302,7 +316,7 @@ function onExitSectionNameInput(id) {
     }
 }
 
-function addTagSection(sectionid) {
+function addTagSection(sectionid, tsn) {
     return () => {
         let tagsSection = document.getElementById("tags-section-"+sectionid)
         let id = Date.now()
@@ -314,7 +328,7 @@ function addTagSection(sectionid) {
             <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg>
         </div>
         <div class="tag-section-name-container">
-            <div class="tags-section-header-preview" id="tag-section-name-${id}">Section</div>
+            <div class="tags-section-header-preview" id="tag-section-name-${id}">${tsn}</div>
             <div style="display:none;" class="tag-section-section-container" id="tag-section-section-container-${id}">
                 <div class="tag-section-input-x" id="tag-section-input-x-${id}">
                     <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg>
@@ -438,7 +452,7 @@ function initTagModal() {
             ID: tagID.innerHTML,
             thumbnail: tagThumbnail.innerHTML,
             name: tagName.innerHTML
-        }), true)
+        }, sectionid), true)
         modaltags[i].addEventListener("click", () => console.log("bla"), true)
     }
 }
@@ -682,6 +696,10 @@ window.onload = function() {
 
     initTagModal()
     getPages()
+
+    var el = document.getElementById('sections-container');
+    var sortable = Sortable.create(el);
+
 }
 
 
@@ -697,7 +715,7 @@ function onImageError() {
 }
 
 
-function initTinyMCEForHompeageSection(selector) {
+function initTinyMCEForHompeageSection(selector, id) {
     console.log("Initializing tinymce: "+selector)
     tinymce.init({
         selector: "#"+selector,
@@ -777,6 +795,12 @@ function initTinyMCEForHompeageSection(selector) {
                 bytes: blobInfo.base64()
             })
             xhr.send(jsonImage)
+        },
+        init_instance_callback : function(editor) {
+            editor.setContent("<p>Hello world!</p>");
+            let contentpreview = document.getElementById("content-"+id)
+            editor.setContent(contentpreview.innerHTML)
+
         }
     });
 }

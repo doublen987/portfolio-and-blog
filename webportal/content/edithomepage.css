@@ -33,6 +33,7 @@
     background-color: #33112b;
     margin-top: 10px;
     border-radius: 5px;
+    overflow: hidden;
 }
 
 
@@ -45,6 +46,7 @@
     background-color: #33112b;
     margin-top: 10px;
     border-radius: 5px;
+    overflow: hidden;
 }
 
 .section-image-input-label {
