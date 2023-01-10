@@ -18,7 +18,9 @@ func HandleBlog(settings models.Settings, posts []models.Post, currentPage int, 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>doublen987</title>
+    <title>`)
+	_buffer.WriteString(settings.WebsiteName)
+	_buffer.WriteString(`</title>
     <link rel="icon" href="/content/doublen987-logo-5.svg">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

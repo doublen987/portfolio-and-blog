@@ -13,11 +13,11 @@
 }
 
 .link-holder li {
-    color: #d08a12;
+    color: var(--text-color-1);
 }
 
 .link-holder li:hover {
-    color: #fbc23f;
+    color: var(--text-color-2);;
 }
 
 .post-holder {
@@ -28,49 +28,49 @@
 }
 
 .post-title{
-    color: #fbc23f;
+    color: var(--text-color-2);;
     font-family: "Bangers", "cursive";
     font-size: 50px;
-    text-shadow: 6px 6px 0 #26021d;
+    text-shadow: 6px 6px 0 var(--bg-color-2);
 }
 
 .post-date {
-    color: #fbc23f;
+    color: var(--text-color-2);
     font-size: 20px;
     margin-top: 20px;
 }
 
 .post-content{
-    color: white;
+    color: var(--text-color-3);;
     font-weight: bold;;
     font-family: 'Open Sans', "cursive";
-    text-shadow: 2px 2px 0 #26021d;
+    text-shadow: 2px 2px 0 var(--bg-color-2);
     text-align: left;
     box-sizing: border-box;
 }
 
 .post-content a {
-    color: #fbc23f;
+    color: var(--text-color-2);;
     text-decoration: none;
 }
 .post-content a:hover {
-    color: #d08a12;
+    color: var(--text-color-1);;
 }
 
 .post-link {
     color: inherit;
     font-family: "Bangers", "cursive";
     font-size: 20px;
-    text-shadow: 2px 2px 0 #26021d;
+    text-shadow: 2px 2px 0 var(--bg-color-2);
     text-align: left;
     text-decoration: none;
 }
 .post-link::marker {
-    color: #fbc23f;
+    color: var(--text-color-2);;
 }
 
 .language-markup {
-    background: #26021d;
+    background: var(--bg-color-1);;
     overflow-x: scroll;
     overflow-y: hidden;
     padding: 20px;
@@ -93,17 +93,17 @@ code {
   
   /* Track */
   ::-webkit-scrollbar-track {
-    background: #26021d;
+    background: var(--bg-color-2);
   }
   
   /* Handle */
   ::-webkit-scrollbar-thumb {
-    background: #d08a12;
+    background: var(--text-color-1);
   }
   
   /* Handle on hover */
   ::-webkit-scrollbar-thumb:hover {
-    background: #fbc23f;
+    background: var(--text-color-2);
   }
 
 @media screen and (max-width: 800px) {

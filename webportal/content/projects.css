@@ -1,23 +1,23 @@
 .project-card{
     display: inline-block;
-    background-color: #33112b;
+    background-color: var(--bg-color-2);
     width: 300px;
     height: 350px;
     overflow: hidden;
 }
 
 .project-title{
-    color: #fbc23f;
+    color: var(--text-color-2);
     font-family: "Bangers", "cursive";
     font-size: 20px;
-    text-shadow: 2px 2px 0 #26021d;
+    text-shadow: 2px 2px 0 var(--bg-color-3);
 }
 
 .project-content{
-    color: #d08a12;
+    color: var(--text-color-1);
     font-family: "Bangers", "cursive";
     font-size: 14px;
-    text-shadow: 2px 2px 0 #26021d;
+    text-shadow: 2px 2px 0 var(--bg-color-3);
     padding: 10px;
 }
 
@@ -44,8 +44,8 @@
 
 .project-link {
     text-align: center;
-    color: #d08a12;
-    fill: #d08a12;
+    color: var(--text-color-1);
+    fill: var(--text-color-1);
 }
 
 .project-link a {
@@ -53,14 +53,14 @@
     vertical-align: middle;
     font-size: 20px;
     text-decoration: none;
-    color: #d08a12;
+    color: var(--text-color-1);
     
 }
 
 .project-link a:hover {
     text-decoration: none;
-    color: #fbc23f;
-    fill: #fbc23f;
+    color: var(--text-color-2);
+    fill: var(--text-color-2);
 }
 
 .project-github-link {

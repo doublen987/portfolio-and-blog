@@ -45,11 +45,11 @@ func startServer() {
 	}
 }
 
-var PIDFile = "/tmp/daemonize.pid"
+var PIDFile = "/tmp/daemonize"
 
-func savePID(pid int) {
+func savePID(pid int, fileName string) {
 
-	file, err := os.Create(PIDFile)
+	file, err := os.Create(fileName)
 	if err != nil {
 		log.Printf("Unable to create pid file : %v\n", err)
 		os.Exit(1)
@@ -75,13 +75,13 @@ func SayHelloWorld(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	if len(os.Args) != 2 {
+	if len(os.Args) != 3 {
 		fmt.Printf("Usage : %s [start|stop] \n ", os.Args[0]) // return the program name back to %s
 		os.Exit(0)                                            // graceful exit
 	}
 
 	if strings.ToLower(os.Args[1]) == "main" {
-
+		instanceName := os.Args[2]
 		// Make arrangement to remove PID file upon receiving the SIGTERM from kill command
 		ch := make(chan os.Signal, 1)
 		signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
@@ -96,7 +96,7 @@ func main() {
 			fmt.Println("Received signal type : ", signalType)
 
 			// remove PID file
-			os.Remove(PIDFile)
+			os.Remove(PIDFile + instanceName + ".pid")
 
 			os.Exit(0)
 
@@ -107,16 +107,18 @@ func main() {
 
 	if strings.ToLower(os.Args[1]) == "start" {
 
+		instanceName := os.Args[2]
+		fmt.Println(PIDFile + instanceName + ".pid")
 		// check if daemon already running.
-		if _, err := os.Stat(PIDFile); err == nil {
-			fmt.Println("Already running or /tmp/daemonize.pid file exist.")
+		if _, err := os.Stat(PIDFile + instanceName + ".pid"); err == nil {
+			fmt.Println("Already running or /tmp/daemonize" + instanceName + ".pid file exist.")
 			os.Exit(1)
 		}
 
-		cmd := exec.Command(os.Args[0], "main")
+		cmd := exec.Command(os.Args[0], "main", instanceName)
 		cmd.Start()
 		fmt.Println("Daemon process ID is : ", cmd.Process.Pid)
-		savePID(cmd.Process.Pid)
+		savePID(cmd.Process.Pid, PIDFile+instanceName+".pid")
 		os.Exit(0)
 	}
 
@@ -126,8 +128,12 @@ func main() {
 	// and exit. If Process ID does not exist, prompt error and quit
 
 	if strings.ToLower(os.Args[1]) == "stop" {
-		if _, err := os.Stat(PIDFile); err == nil {
-			data, err := ioutil.ReadFile(PIDFile)
+		instanceName := os.Args[2]
+
+		fmt.Println(PIDFile + instanceName + ".pid")
+		if _, err := os.Stat(PIDFile + instanceName + ".pid"); err == nil {
+
+			data, err := ioutil.ReadFile(PIDFile + instanceName + ".pid")
 			if err != nil {
 				fmt.Println("Not running")
 				os.Exit(1)
@@ -135,7 +141,7 @@ func main() {
 			ProcessID, err := strconv.Atoi(string(data))
 
 			if err != nil {
-				fmt.Println("Unable to read and parse process id found in ", PIDFile)
+				fmt.Println("Unable to read and parse process id found in ", PIDFile+instanceName+".pid")
 				os.Exit(1)
 			}
 
@@ -146,7 +152,7 @@ func main() {
 				os.Exit(1)
 			}
 			// remove PID file
-			os.Remove(PIDFile)
+			os.Remove(PIDFile + instanceName + ".pid")
 
 			fmt.Printf("Killing process ID [%v] now.\n", ProcessID)
 			// kill process and exit immediately

@@ -1,8 +1,8 @@
 .homepage-heading {
-    color: #fbc23f;
+    color: var(--text-color-2);
     font-family: "Bangers", "cursive";
     font-size: 70px;
-    text-shadow: 4px 4px 0 #33112b;
+    text-shadow: 4px 4px 0 var(--bg-color-2);;
 }
 
 @media screen and (max-width: 600px) {
@@ -12,13 +12,13 @@
 }
 
 .homepage-content {
-    color: #d08a12;
+    color: var(--text-color-1);
     font-family: "Bangers", "cursive";
     font-size: 30px;
 }
 
 .homepage-qualifications {
-    color: #d08a12;
+    color: var(--text-color-1);
     font-family: "Bangers", "cursive";
     font-size: 30px;
 }
@@ -36,7 +36,7 @@
 }
 
 .icon-container-label {
-    color: #d08a12;
+    color: var(--text-color-1);
     font-family: "Bangers", "cursive";
     font-size: 30px;
     display: inline-block;
@@ -76,7 +76,7 @@
     position: absolute;
     top: -100px;
     left: 300px;
-    border-bottom: 3px solid #d08a12 ;
+    border-bottom: 3px solid var(--text-color-1);
     filter: sepia(100%) saturate(300%) brightness(70%) hue-rotate(270deg);
 }
 
