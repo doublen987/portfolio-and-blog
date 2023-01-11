@@ -169,6 +169,13 @@ func NewMongodbHandler(connection string) (*MongodbHandler, error) {
 			TextColor2:       "#fbc23f",
 			TextColor3:       "#ffffff",
 		})
+
+		handler.RemoveAllTags(context.Background())
+		handler.AddTag(context.Background(), models.Tag{
+			Name:               "MongoDB",
+			Thumbnail:          "MongoDB-logo.svg?storagetype=filesystem",
+			ThumbnailStretched: false,
+		})
 	}
 
 	return &handler, err
@@ -852,6 +859,12 @@ func (handler *MongodbHandler) RemoveKnowledgeTimelineEvent(ctx context.Context,
 	} else {
 		return err
 	}
+}
+func (handler *MongodbHandler) RemoveAllTags(ctx context.Context) error {
+	s := handler.Session
+
+	err := s.Database("MojSajt").Collection("tags").Drop(ctx)
+	return err
 }
 func (handler *MongodbHandler) AddTag(ctx context.Context, tag models.Tag) error {
 	s := handler.Session

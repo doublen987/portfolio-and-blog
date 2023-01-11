@@ -43,7 +43,7 @@ func (fh FileSystemFileHandler) GetFile(fileName string) ([]byte, error) {
 		return []byte{}, err
 	}
 	var retrievedBytes []byte
-	buf := make([]byte, 16)
+	buf := make([]byte, 1)
 	for {
 		_, err := file.Read(buf)
 		if err != nil {

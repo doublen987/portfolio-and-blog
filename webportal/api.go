@@ -146,6 +146,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 	rootrouter := mux.NewRouter()
 	db, err := persistence.GetDataBaseHandler(dbtype, dbconnection)
 	fh, err := persistence.GetFileHandler(filestoragetype, "")
+	localfh, err := persistence.GetFileHandler("filesystem", "")
 	settings, err := db.GetSettings(context.Background())
 
 	if err != nil {
@@ -285,6 +286,17 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			Name:    "token",
 			Value:   out.Token,
 			Expires: out.ExpiresAt,
+		})
+
+		http.Redirect(w, req, "/", http.StatusFound)
+	})
+
+	r.PathPrefix("/logout").Methods("GET").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		http.SetCookie(w, &http.Cookie{
+			Name:   "token",
+			Value:  "",
+			MaxAge: -1,
 		})
 
 		http.Redirect(w, req, "/", http.StatusFound)
@@ -1480,10 +1492,24 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 	subr.PathPrefix("/images/{imageID}").Methods("GET").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		//ctx := req.Context()
-		imageBytes, err := fh.GetFile(vars["imageID"])
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
+
+		storagetype := req.URL.Query().Get("storagetype")
+
+		var imageBytes []byte
+
+		if storagetype == "filesystem" {
+			imageBytes, err = localfh.GetFile(vars["imageID"])
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
+		} else {
+
+			imageBytes, err = fh.GetFile(vars["imageID"])
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
 		}
 
 		s := strings.Split(vars["imageID"], ".")
@@ -1505,6 +1531,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 
 		w.Write(imageBytes)
 		w.WriteHeader(http.StatusOK)
+		return
 	}))
 
 	subr.PathPrefix("/images").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
