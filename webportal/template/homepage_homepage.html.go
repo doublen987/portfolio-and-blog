@@ -233,7 +233,7 @@ func Homepage(settings models.Settings, page models.Page2, w io.Writer) {
                 <div class="page-section image-section">
                     <img src="/content/images/`)
 			hero.EscapeHTML(imageSection.Image, _buffer)
-			_buffer.WriteString(`" class="tech-icon"/>
+			_buffer.WriteString(`" class="image-section-image"/>
                 </div>
             `)
 		}

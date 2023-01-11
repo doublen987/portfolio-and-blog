@@ -176,11 +176,131 @@ func NewMongodbHandler(connection string, databaseName string) (*MongodbHandler,
 
 		if count, err := handler.CountElements(context.Background(), "tags"); err == nil && count == 0 {
 			handler.RemoveAllTags(context.Background())
-			handler.AddTag(context.Background(), models.Tag{
-				Name:               "MongoDB",
-				Thumbnail:          "MongoDB-logo.svg?storagetype=filesystem",
-				ThumbnailStretched: false,
-			})
+
+			tagsToAdd := []models.Tag{
+				{
+					Name:               "MongoDB",
+					Thumbnail:          "MongoDB-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "AWS",
+					Thumbnail:          "AWS-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "CSS3",
+					Thumbnail:          "CSS3-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Docker",
+					Thumbnail:          "Docker-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Firebase",
+					Thumbnail:          "Firebase-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Go",
+					Thumbnail:          "Go-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Git",
+					Thumbnail:          "Git-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Heroku",
+					Thumbnail:          "Heroku-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "HTML5",
+					Thumbnail:          "HTML5-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Java",
+					Thumbnail:          "Java-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "JavaScript",
+					Thumbnail:          "JavaScript-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "JQuery",
+					Thumbnail:          "Jquery_plain_wordmark-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Kubernetes",
+					Thumbnail:          "Kubernetes-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "MySQL",
+					Thumbnail:          "MySQL-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "NodeJS",
+					Thumbnail:          "NodeJS-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "PixiJS",
+					Thumbnail:          "PixiJS-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Postgresql",
+					Thumbnail:          "Postgresql-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "React",
+					Thumbnail:          "React-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Redis",
+					Thumbnail:          "Redis-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Typescript",
+					Thumbnail:          "Typescript-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Vim",
+					Thumbnail:          "Vim-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Visual Studio",
+					Thumbnail:          "Visual-Studio.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "WebGL",
+					Thumbnail:          "WebGL-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+				{
+					Name:               "Webpack",
+					Thumbnail:          "Webpack-logo.svg?storagetype=filesystem",
+					ThumbnailStretched: false,
+				},
+			}
+
+			handler.AddTags(context.Background(), tagsToAdd)
 		}
 
 		if count, err := handler.CountElements(context.Background(), "pages"); err == nil && count == 0 {
@@ -913,6 +1033,17 @@ func (handler *MongodbHandler) AddTag(ctx context.Context, tag models.Tag) error
 	tag.ID = guid.String()
 
 	_, err := s.Database(handler.DatabaseName).Collection("tags").InsertOne(ctx, tag)
+	return err
+}
+func (handler *MongodbHandler) AddTags(ctx context.Context, tags []models.Tag) error {
+	s := handler.Session
+
+	bla := make([]interface{}, len(tags))
+	for i, tag := range tags {
+		bla[i] = tag
+	}
+
+	_, err := s.Database(handler.DatabaseName).Collection("tags").InsertMany(ctx, bla)
 	return err
 }
 func (handler *MongodbHandler) RemoveTag(ctx context.Context, tagID string) error {
