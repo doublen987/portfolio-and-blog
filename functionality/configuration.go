@@ -12,6 +12,7 @@ import (
 var (
 	DBTypeDefault              = persistence.MONGODB
 	DBConnectionDefault        = "mongodb://127.0.0.1:5656"
+	DBNameDefault              = "MySite"
 	FileStorageTypeDefault     = persistence.FILESYSTEM
 	StoragePathDefault         = "images"
 	HostDefault                = ""
@@ -28,6 +29,7 @@ var (
 type ServiceConfig struct {
 	Databasetype        uint8    `json:"databasetype"`
 	DBConnection        string   `json:"dbconnection"`
+	DBName              string   `json:"dbname"`
 	FileStorageType     string   `json:"filestoragetype"`
 	Storagepath         string   `json:"storagepath"`
 	Host                string   `json:"host"`
@@ -45,6 +47,7 @@ func ExtractConfiguration(filename string) (ServiceConfig, error) {
 	conf := ServiceConfig{
 		DBTypeDefault,
 		DBConnectionDefault,
+		DBNameDefault,
 		FileStorageTypeDefault,
 		StoragePathDefault,
 		HostDefault,
@@ -70,6 +73,9 @@ func ExtractConfiguration(filename string) (ServiceConfig, error) {
 	}
 	if dbURL := os.Getenv("DB_URL"); dbURL != "" {
 		conf.DBConnection = dbURL
+	}
+	if dbName := os.Getenv("DB_NAME"); dbName != "" {
+		conf.DBName = dbName
 	}
 	if port := os.Getenv("PORT"); port != "" {
 		conf.Port = port

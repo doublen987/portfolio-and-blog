@@ -142,9 +142,9 @@ func Middleware(next http.Handler) http.Handler {
 	})
 }
 
-func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint string, dbconnection string, filestoragetype string) (chan error, chan error) {
+func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint string, dbconnection string, databaseName, filestoragetype string) (chan error, chan error) {
 	rootrouter := mux.NewRouter()
-	db, err := persistence.GetDataBaseHandler(dbtype, dbconnection)
+	db, err := persistence.GetDataBaseHandler(dbtype, dbconnection, databaseName)
 	fh, err := persistence.GetFileHandler(filestoragetype, "")
 	localfh, err := persistence.GetFileHandler("filesystem", "")
 	settings, err := db.GetSettings(context.Background())

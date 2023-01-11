@@ -64,10 +64,10 @@ type DBHandler interface {
 
 var DBTypeNotSupported = errors.New("The Database type provided is not supported...")
 
-func GetDataBaseHandler(dbtype uint8, connection string) (DBHandler, error) {
+func GetDataBaseHandler(dbtype uint8, connection string, databaseName string) (DBHandler, error) {
 	switch dbtype {
 	case MONGODB:
-		return mongodb.NewMongodbHandler(connection)
+		return mongodb.NewMongodbHandler(connection, databaseName)
 	}
 	return nil, DBTypeNotSupported
 }

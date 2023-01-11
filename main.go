@@ -34,7 +34,7 @@ func startServer() {
 	log.Println("Starting web server on addres: ", address)
 	log.Println("Connecting to database: ", config.DBConnection)
 
-	httpErrChan, httpIsErrChan := webportal.RunAPI(config.Databasetype, address, config.CertPEM, config.KeyPEM, tlsaddress, config.DBConnection, config.FileStorageType)
+	httpErrChan, httpIsErrChan := webportal.RunAPI(config.Databasetype, address, config.CertPEM, config.KeyPEM, tlsaddress, config.DBConnection, config.DBName, config.FileStorageType)
 	for true {
 		select {
 		case err := <-httpErrChan:

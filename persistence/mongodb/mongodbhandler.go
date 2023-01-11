@@ -83,8 +83,9 @@ type MongoPage struct {
 }
 
 type MongodbHandler struct {
-	Session    *mongo.Client
-	SettingsID string
+	Session      *mongo.Client
+	SettingsID   string
+	DatabaseName string
 }
 
 func getHash(pwd []byte) string {
@@ -120,7 +121,7 @@ func (nullawareStrDecoder) DecodeValue(dctx bsoncodec.DecodeContext, vr bsonrw.V
 	return nil
 }
 
-func NewMongodbHandler(connection string) (*MongodbHandler, error) {
+func NewMongodbHandler(connection string, databaseName string) (*MongodbHandler, error) {
 	fmt.Println("Connecting to mongodb: " + connection)
 	//s, err := mgo.Dial(connection)
 	ctx := context.Background()
@@ -154,8 +155,9 @@ func NewMongodbHandler(connection string) (*MongodbHandler, error) {
 	}
 
 	handler := MongodbHandler{
-		Session:    s,
-		SettingsID: "settings",
+		Session:      s,
+		SettingsID:   "settings",
+		DatabaseName: databaseName,
 	}
 
 	if err == nil {
@@ -193,7 +195,7 @@ func (handler *MongodbHandler) AddUser(ctx context.Context, user models.User) er
 		Thumbnail:   user.Thumbnail,
 	}
 
-	_, err := s.Database("MojSajt").Collection("users").InsertOne(ctx, newUser)
+	_, err := s.Database(handler.DatabaseName).Collection("users").InsertOne(ctx, newUser)
 	return err
 }
 func (handler *MongodbHandler) RemoveUser(ctx context.Context, userID string) error {
@@ -205,7 +207,7 @@ func (handler *MongodbHandler) RemoveUser(ctx context.Context, userID string) er
 	// }
 
 	if oid, err := primitive.ObjectIDFromHex(userID); err == nil {
-		_, err := s.Database("MojSajt").Collection("users").DeleteOne(ctx, bson.D{{"_id", oid}})
+		_, err := s.Database(handler.DatabaseName).Collection("users").DeleteOne(ctx, bson.D{{"_id", oid}})
 		return err
 	} else {
 		return err
@@ -235,7 +237,7 @@ func (handler *MongodbHandler) UpdateUser(ctx context.Context, user models.User)
 
 	fmt.Println(primitive.ObjectIDFromHex(user.ID))
 	if id, err := primitive.ObjectIDFromHex(user.ID); err == nil {
-		_, err := s.Database("MojSajt").Collection("users").UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", updateFields}})
+		_, err := s.Database(handler.DatabaseName).Collection("users").UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", updateFields}})
 
 		return err
 	} else {
@@ -268,7 +270,7 @@ func (handler *MongodbHandler) GetUsers(ctx context.Context) ([]models.User, err
 
 	musers := []MongoUser{}
 	users := []models.User{}
-	cursor, err := s.Database("MojSajt").Collection("users").Find(ctx, filter, findOptions)
+	cursor, err := s.Database(handler.DatabaseName).Collection("users").Find(ctx, filter, findOptions)
 	if err != nil {
 		return users, err
 	}
@@ -289,7 +291,7 @@ func (handler *MongodbHandler) Authenticate(ctx context.Context, username string
 	s := handler.Session
 
 	muser := MongoUser{}
-	cursor, err := s.Database("MojSajt").Collection("users").Find(ctx, bson.D{{"username", username}})
+	cursor, err := s.Database(handler.DatabaseName).Collection("users").Find(ctx, bson.D{{"username", username}})
 	fmt.Println(getHash([]byte(password)))
 	defer cursor.Close(ctx)
 	if cursor.Next(ctx) {
@@ -333,7 +335,7 @@ func (handler *MongodbHandler) AddPost(ctx context.Context, post models.Post) er
 		Tags:               mpostTags,
 	}
 
-	_, err := s.Database("MojSajt").Collection("posts").InsertOne(ctx, newPost)
+	_, err := s.Database(handler.DatabaseName).Collection("posts").InsertOne(ctx, newPost)
 	return err
 }
 func (handler *MongodbHandler) UpdatePost(ctx context.Context, post models.Post) (models.Post, error) {
@@ -369,7 +371,7 @@ func (handler *MongodbHandler) UpdatePost(ctx context.Context, post models.Post)
 
 	fmt.Println(primitive.ObjectIDFromHex(post.ID))
 	if id, err := primitive.ObjectIDFromHex(post.ID); err == nil {
-		_, err := s.Database("MojSajt").Collection("posts").UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", updateFields}})
+		_, err := s.Database(handler.DatabaseName).Collection("posts").UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", updateFields}})
 
 		return models.Post{}, err
 	} else {
@@ -392,7 +394,7 @@ func (handler *MongodbHandler) ReplacePost(ctx context.Context, post models.Post
 			Published:         post.Published,
 			Thumbnail:         post.Thumbnail,
 		}
-		_, err := s.Database("MojSajt").Collection("posts").ReplaceOne(ctx, bson.D{{"_id", id}}, newPost)
+		_, err := s.Database(handler.DatabaseName).Collection("posts").ReplaceOne(ctx, bson.D{{"_id", id}}, newPost)
 		return err
 	} else {
 		return ErrInvalidPostId
@@ -407,7 +409,7 @@ func (handler *MongodbHandler) RemovePost(ctx context.Context, id string) error 
 	// }
 
 	if oid, err := primitive.ObjectIDFromHex(id); err == nil {
-		_, err := s.Database("MojSajt").Collection("posts").DeleteOne(ctx, bson.D{{"_id", oid}})
+		_, err := s.Database(handler.DatabaseName).Collection("posts").DeleteOne(ctx, bson.D{{"_id", oid}})
 		return err
 	} else {
 		return err
@@ -423,7 +425,7 @@ func (handler *MongodbHandler) PublishPost(ctx context.Context, id string) error
 	timestamp := time.Now()
 
 	if oid, err := primitive.ObjectIDFromHex(id); err == nil {
-		_, err := s.Database("MojSajt").Collection("posts").UpdateOne(ctx, bson.D{{"_id", oid}}, bson.D{{"$set",
+		_, err := s.Database(handler.DatabaseName).Collection("posts").UpdateOne(ctx, bson.D{{"_id", oid}}, bson.D{{"$set",
 			bson.M{
 				"published":         true,
 				"publishtimestamp":  timestamp,
@@ -488,7 +490,7 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 
 	tags := []models.Tag{}
 	tagmap := map[string]models.Tag{}
-	cursorTags, err := s.Database("MojSajt").Collection("tags").Find(ctx, bson.D{})
+	cursorTags, err := s.Database(handler.DatabaseName).Collection("tags").Find(ctx, bson.D{})
 	if err != nil {
 		return posts, err
 	}
@@ -500,7 +502,7 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 
 	mposts := []MongoPost{}
 
-	cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, filter, findOptions)
+	cursor, err := s.Database(handler.DatabaseName).Collection("posts").Find(ctx, filter, findOptions)
 	if err != nil {
 		fmt.Println("Error retrieving posts")
 		return posts, err
@@ -547,7 +549,7 @@ func (handler *MongodbHandler) GetPostsCount(ctx context.Context) (int64, error)
 		filter["hidden"] = false
 	}
 
-	count, err := s.Database("MojSajt").Collection("posts").CountDocuments(ctx, filter)
+	count, err := s.Database(handler.DatabaseName).Collection("posts").CountDocuments(ctx, filter)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -573,7 +575,7 @@ func (handler *MongodbHandler) GetPost(ctx context.Context, id string) (models.P
 	mpost := MongoPost{}
 	if oid, err := primitive.ObjectIDFromHex(id); err == nil {
 		filter["_id"] = oid
-		cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, filter)
+		cursor, err := s.Database(handler.DatabaseName).Collection("posts").Find(ctx, filter)
 		defer cursor.Close(ctx)
 		if cursor.Next(ctx) {
 			err = cursor.Decode(&mpost)
@@ -622,7 +624,7 @@ func (handler *MongodbHandler) AddProject(ctx context.Context, project models.Pr
 		Tags:               mprojectTags,
 	}
 
-	_, err := s.Database("MojSajt").Collection("projects").InsertOne(ctx, newProject)
+	_, err := s.Database(handler.DatabaseName).Collection("projects").InsertOne(ctx, newProject)
 	return err
 }
 func (handler *MongodbHandler) UpdateProject(ctx context.Context, project models.Project) (models.Project, error) {
@@ -656,7 +658,7 @@ func (handler *MongodbHandler) UpdateProject(ctx context.Context, project models
 
 	fmt.Println(primitive.ObjectIDFromHex(project.ID))
 	if id, err := primitive.ObjectIDFromHex(project.ID); err == nil {
-		_, err := s.Database("MojSajt").Collection("projects").UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", updateFields}})
+		_, err := s.Database(handler.DatabaseName).Collection("projects").UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", updateFields}})
 
 		return models.Project{}, err
 	} else {
@@ -672,7 +674,7 @@ func (handler *MongodbHandler) RemoveProject(ctx context.Context, id string) err
 	// }
 
 	if oid, err := primitive.ObjectIDFromHex(id); err == nil {
-		_, err := s.Database("MojSajt").Collection("projects").DeleteOne(ctx, bson.D{{"_id", oid}})
+		_, err := s.Database(handler.DatabaseName).Collection("projects").DeleteOne(ctx, bson.D{{"_id", oid}})
 		return err
 	} else {
 		return err
@@ -690,7 +692,7 @@ func (handler *MongodbHandler) GetProjects(ctx context.Context) ([]models.Projec
 	tags := []models.Tag{}
 
 	tagmap := map[string]models.Tag{}
-	cursorTags, err := s.Database("MojSajt").Collection("tags").Find(ctx, bson.D{})
+	cursorTags, err := s.Database(handler.DatabaseName).Collection("tags").Find(ctx, bson.D{})
 	if err != nil {
 		return projects, err
 	}
@@ -700,7 +702,7 @@ func (handler *MongodbHandler) GetProjects(ctx context.Context) ([]models.Projec
 		tagmap[tag.ID] = tag
 	}
 
-	cursor, err := s.Database("MojSajt").Collection("projects").Find(ctx, bson.D{})
+	cursor, err := s.Database(handler.DatabaseName).Collection("projects").Find(ctx, bson.D{})
 	if err != nil {
 		return projects, err
 	}
@@ -738,7 +740,7 @@ func (handler *MongodbHandler) GetProject(ctx context.Context, id string) (model
 
 	p := models.Project{}
 	if oid, err := primitive.ObjectIDFromHex(id); err == nil {
-		cursor, err := s.Database("MojSajt").Collection("projects").Find(ctx, bson.D{{"_id", oid}})
+		cursor, err := s.Database(handler.DatabaseName).Collection("projects").Find(ctx, bson.D{{"_id", oid}})
 		defer cursor.Close(ctx)
 		if err != nil {
 			return models.Project{}, err
@@ -776,7 +778,7 @@ func (handler *MongodbHandler) GetLinks(ctx context.Context) ([]models.Link, err
 
 	mlinks := []MongoLink{}
 	links := []models.Link{}
-	cursor, err := s.Database("MojSajt").Collection("posts").Find(ctx, filter)
+	cursor, err := s.Database(handler.DatabaseName).Collection("posts").Find(ctx, filter)
 	cursor.All(ctx, &mlinks)
 	cursor.Close(ctx)
 	for _, mlink := range mlinks {
@@ -794,7 +796,7 @@ func (handler *MongodbHandler) GetKnowledgeTimelineEvents(ctx context.Context) (
 
 	mevents := []MongoKnowledgeTimelineEvent{}
 	events := []models.TimelineEvent{}
-	cursor, err := s.Database("MojSajt").Collection("knowledgetimelineevents").Find(ctx, bson.D{})
+	cursor, err := s.Database(handler.DatabaseName).Collection("knowledgetimelineevents").Find(ctx, bson.D{})
 	cursor.All(ctx, &mevents)
 	cursor.Close(ctx)
 	for _, mevent := range mevents {
@@ -819,7 +821,7 @@ func (handler *MongodbHandler) AddKnowledgeTimelineEvent(ctx context.Context, ev
 		Image:       event.Image,
 	}
 
-	_, err := s.Database("MojSajt").Collection("knowledgetimelineevents").InsertOne(ctx, newEvent)
+	_, err := s.Database(handler.DatabaseName).Collection("knowledgetimelineevents").InsertOne(ctx, newEvent)
 	return err
 }
 func (handler *MongodbHandler) UpdateKnowledgeTimelineEvent(ctx context.Context, event models.TimelineEvent) (models.TimelineEvent, error) {
@@ -839,7 +841,7 @@ func (handler *MongodbHandler) UpdateKnowledgeTimelineEvent(ctx context.Context,
 			Image:       event.Image,
 		}
 
-		_, err = s.Database("MojSajt").Collection("knowledgetimelineevents").UpdateOne(ctx, bson.D{{"_id", updatedEvent.ID}}, updatedEvent)
+		_, err = s.Database(handler.DatabaseName).Collection("knowledgetimelineevents").UpdateOne(ctx, bson.D{{"_id", updatedEvent.ID}}, updatedEvent)
 		return event, err
 	} else {
 		return models.TimelineEvent{}, ErrInvalidPostId
@@ -854,7 +856,7 @@ func (handler *MongodbHandler) RemoveKnowledgeTimelineEvent(ctx context.Context,
 	// }
 
 	if oid, err := primitive.ObjectIDFromHex(id); err == nil {
-		_, err := s.Database("MojSajt").Collection("knowledgetimelineevents").DeleteOne(ctx, bson.D{{"_id", oid}})
+		_, err := s.Database(handler.DatabaseName).Collection("knowledgetimelineevents").DeleteOne(ctx, bson.D{{"_id", oid}})
 		return err
 	} else {
 		return err
@@ -863,7 +865,7 @@ func (handler *MongodbHandler) RemoveKnowledgeTimelineEvent(ctx context.Context,
 func (handler *MongodbHandler) RemoveAllTags(ctx context.Context) error {
 	s := handler.Session
 
-	err := s.Database("MojSajt").Collection("tags").Drop(ctx)
+	err := s.Database(handler.DatabaseName).Collection("tags").Drop(ctx)
 	return err
 }
 func (handler *MongodbHandler) AddTag(ctx context.Context, tag models.Tag) error {
@@ -873,7 +875,7 @@ func (handler *MongodbHandler) AddTag(ctx context.Context, tag models.Tag) error
 	guid := xid.New()
 	tag.ID = guid.String()
 
-	_, err := s.Database("MojSajt").Collection("tags").InsertOne(ctx, tag)
+	_, err := s.Database(handler.DatabaseName).Collection("tags").InsertOne(ctx, tag)
 	return err
 }
 func (handler *MongodbHandler) RemoveTag(ctx context.Context, tagID string) error {
@@ -885,7 +887,7 @@ func (handler *MongodbHandler) RemoveTag(ctx context.Context, tagID string) erro
 	// }
 
 	//if oid, err := primitive.ObjectIDFromHex(userID); err == nil {
-	_, err := s.Database("MojSajt").Collection("tags").DeleteOne(ctx, bson.D{{"ID", tagID}})
+	_, err := s.Database(handler.DatabaseName).Collection("tags").DeleteOne(ctx, bson.D{{"ID", tagID}})
 	return err
 }
 func (handler *MongodbHandler) UpdateTag(ctx context.Context, tag models.Tag) error {
@@ -911,7 +913,7 @@ func (handler *MongodbHandler) UpdateTag(ctx context.Context, tag models.Tag) er
 
 	// fmt.Println(primitive.ObjectIDFromHex(user.ID))
 	// if id, err := primitive.ObjectIDFromHex(user.ID); err == nil {
-	_, err := s.Database("MojSajt").Collection("tags").UpdateOne(ctx, bson.D{{"ID", tag.ID}}, bson.D{{"$set", updateFields}})
+	_, err := s.Database(handler.DatabaseName).Collection("tags").UpdateOne(ctx, bson.D{{"ID", tag.ID}}, bson.D{{"$set", updateFields}})
 
 	return err
 }
@@ -924,7 +926,7 @@ func (handler *MongodbHandler) GetTags(ctx context.Context) ([]models.Tag, error
 	findOptions := options.Find()
 
 	tags := []models.Tag{}
-	cursor, err := s.Database("MojSajt").Collection("tags").Find(ctx, filter, findOptions)
+	cursor, err := s.Database(handler.DatabaseName).Collection("tags").Find(ctx, filter, findOptions)
 	if err != nil {
 		return tags, err
 	}
@@ -944,7 +946,7 @@ func (handler *MongodbHandler) AddPage(ctx context.Context, page models.Page) er
 	guid := xid.New()
 	page.ID = guid.String()
 
-	_, err := s.Database("MojSajt").Collection("pages").InsertOne(ctx, page)
+	_, err := s.Database(handler.DatabaseName).Collection("pages").InsertOne(ctx, page)
 	return err
 }
 func (handler *MongodbHandler) UpdatePage(ctx context.Context, page models.Page) error {
@@ -967,14 +969,14 @@ func (handler *MongodbHandler) UpdatePage(ctx context.Context, page models.Page)
 	}
 
 	fmt.Println(page.ID)
-	_, err := s.Database("MojSajt").Collection("pages").UpdateOne(ctx, bson.D{{"ID", page.ID}}, bson.D{{"$set", updateFields}})
+	_, err := s.Database(handler.DatabaseName).Collection("pages").UpdateOne(ctx, bson.D{{"ID", page.ID}}, bson.D{{"$set", updateFields}})
 
 	return err
 }
 func (handler *MongodbHandler) RemovePage(ctx context.Context, id string) error {
 	s := handler.Session
 
-	_, err := s.Database("MojSajt").Collection("pages").DeleteOne(ctx, bson.D{{"ID", id}})
+	_, err := s.Database(handler.DatabaseName).Collection("pages").DeleteOne(ctx, bson.D{{"ID", id}})
 	return err
 }
 func (handler *MongodbHandler) GetPages(ctx context.Context) ([]models.Page, error) {
@@ -985,7 +987,7 @@ func (handler *MongodbHandler) GetPages(ctx context.Context) ([]models.Page, err
 	filter := bson.M{}
 	pages := []models.Page{}
 
-	cursor, err := s.Database("MojSajt").Collection("pages").Find(ctx, filter)
+	cursor, err := s.Database(handler.DatabaseName).Collection("pages").Find(ctx, filter)
 	if err != nil {
 		fmt.Println("Error retrieving posts")
 		return pages, err
@@ -1012,7 +1014,7 @@ func (handler *MongodbHandler) GetPage(ctx context.Context, id string) (models.P
 	} else {
 		filter["ID"] = id
 	}
-	cursor, err := s.Database("MojSajt").Collection("pages").Find(ctx, filter)
+	cursor, err := s.Database(handler.DatabaseName).Collection("pages").Find(ctx, filter)
 	defer cursor.Close(ctx)
 	if cursor.Next(ctx) {
 		err = cursor.Decode(&mpage)
@@ -1038,7 +1040,7 @@ func (handler *MongodbHandler) AddVisit(ctx context.Context, visit models.Visit)
 
 	date := time.Now().Format("2006/01/02")
 
-	_, err := s.Database("MojSajt").Collection("visits").UpdateOne(ctx, bson.D{{"date", date}}, bson.D{{"$inc", fields}}, opts)
+	_, err := s.Database(handler.DatabaseName).Collection("visits").UpdateOne(ctx, bson.D{{"date", date}}, bson.D{{"$inc", fields}}, opts)
 
 	return err
 }
@@ -1050,7 +1052,7 @@ func (handler *MongodbHandler) GetVisits(ctx context.Context) ([]models.VisitSum
 	filter := bson.D{}
 	visits := []models.VisitSummary{}
 
-	cursor, err := s.Database("MojSajt").Collection("visits").Find(ctx, filter)
+	cursor, err := s.Database(handler.DatabaseName).Collection("visits").Find(ctx, filter)
 	if err != nil {
 		fmt.Println("Error retrieving posts")
 		return visits, err
@@ -1077,7 +1079,7 @@ func (handler *MongodbHandler) AddSettings(ctx context.Context, settings models.
 	// cursor := s.Database(handler.databaseName).Collection("settings").FindOne(ctx, bson.D{{"ID", handler.settingsID}})
 	// err := cursor.Decode(&settings)
 	// if err != nil {
-	_, err := s.Database("MojSajt").Collection("settings").ReplaceOne(ctx, bson.D{{"ID", handler.SettingsID}}, settings, &replaceModel)
+	_, err := s.Database(handler.DatabaseName).Collection("settings").ReplaceOne(ctx, bson.D{{"ID", handler.SettingsID}}, settings, &replaceModel)
 	return err
 	//}
 	return nil
@@ -1111,7 +1113,7 @@ func (handler *MongodbHandler) UpdateSettings(ctx context.Context, settings mode
 		updateFields = append(updateFields, bson.E{key, value})
 	}
 
-	_, err := s.Database("MojSajt").Collection("settings").UpdateOne(ctx, bson.D{{"ID", handler.SettingsID}}, bson.D{{"$set", updateFields}})
+	_, err := s.Database(handler.DatabaseName).Collection("settings").UpdateOne(ctx, bson.D{{"ID", handler.SettingsID}}, bson.D{{"$set", updateFields}})
 	if err != nil {
 		return ErrInvalidPostId
 	}
@@ -1123,7 +1125,7 @@ func (handler *MongodbHandler) GetSettings(ctx context.Context) (models.Settings
 	// defer s.Disconnect(ctx)
 
 	settings := models.Settings{}
-	cursor := s.Database("MojSajt").Collection("settings").FindOne(ctx, bson.D{{"ID", handler.SettingsID}}, options.FindOne())
+	cursor := s.Database(handler.DatabaseName).Collection("settings").FindOne(ctx, bson.D{{"ID", handler.SettingsID}}, options.FindOne())
 
 	err := cursor.Decode(&settings)
 	if err != nil {
