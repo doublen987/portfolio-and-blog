@@ -161,26 +161,63 @@ func NewMongodbHandler(connection string, databaseName string) (*MongodbHandler,
 	}
 
 	if err == nil {
-		handler.AddSettings(context.Background(), models.Settings{
-			WebsiteName:      "MySite",
-			Logo:             "",
-			BackgroundColor1: "#26021d",
-			BackgroundColor2: "#33112b",
-			BackgroundColor3: "#58234c",
-			TextColor1:       "#d08a12",
-			TextColor2:       "#fbc23f",
-			TextColor3:       "#ffffff",
-		})
+		if count, err := handler.CountElements(context.Background(), "settings"); err == nil && count > 0 {
+			handler.AddSettings(context.Background(), models.Settings{
+				WebsiteName:      "MySite",
+				Logo:             "",
+				BackgroundColor1: "#26021d",
+				BackgroundColor2: "#33112b",
+				BackgroundColor3: "#58234c",
+				TextColor1:       "#d08a12",
+				TextColor2:       "#fbc23f",
+				TextColor3:       "#ffffff",
+			})
+		}
 
-		handler.RemoveAllTags(context.Background())
-		handler.AddTag(context.Background(), models.Tag{
-			Name:               "MongoDB",
-			Thumbnail:          "MongoDB-logo.svg?storagetype=filesystem",
-			ThumbnailStretched: false,
-		})
+		if count, err := handler.CountElements(context.Background(), "tags"); err == nil && count == 0 {
+			handler.RemoveAllTags(context.Background())
+			handler.AddTag(context.Background(), models.Tag{
+				Name:               "MongoDB",
+				Thumbnail:          "MongoDB-logo.svg?storagetype=filesystem",
+				ThumbnailStretched: false,
+			})
+		}
+
+		if count, err := handler.CountElements(context.Background(), "pages"); err == nil && count == 0 {
+			handler.RemoveAll(context.Background(), "pages")
+			sections := make([]interface{}, 2)
+
+			bla := make(map[string]string)
+			bla["type"] = "image"
+			bla["filename"] = "Eternal-logo.svg?storagetype=filesystem"
+			sections[0] = bla
+
+			bla1 := make(map[string]string)
+			bla1["type"] = "text"
+			bla1["header"] = "Welocme to Eternal!"
+			bla1["content"] = "The best Content Management System for building portfolios."
+			sections[1] = bla1
+			handler.AddPage(context.Background(), models.Page{
+				Name:     "Welcome to Eternal",
+				Homepage: true,
+				Sections: sections,
+			})
+		}
 	}
 
 	return &handler, err
+}
+
+func (handler *MongodbHandler) CountElements(ctx context.Context, collectionName string) (int64, error) {
+	s := handler.Session
+	count, err := s.Database(handler.DatabaseName).Collection(collectionName).CountDocuments(ctx, bson.D{})
+	return count, err
+}
+func (handler *MongodbHandler) RemoveAll(ctx context.Context, collectionName string) error {
+	s := handler.Session
+
+	err := s.Database(handler.DatabaseName).Collection(collectionName).Drop(ctx)
+	return err
 }
 func (handler *MongodbHandler) AddUser(ctx context.Context, user models.User) error {
 	s := handler.Session

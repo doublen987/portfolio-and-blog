@@ -603,6 +603,32 @@ function onSave() {
     savePage();
 }
 
+function onDelete() {
+    let pageID = document.getElementById("page-select").value;
+
+    async function deletePage() {
+        const rawResponse = await fetch('/homepage/edit', {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ID: pageID
+            })    
+        });
+        const content = await rawResponse;
+
+
+        console.log(rawResponse.ok);
+        if(rawResponse.ok) {
+        }
+    }
+
+    deletePage();
+}
+
 function getPages() {
     fetch('/pages', {
     method: 'GET',
@@ -668,6 +694,9 @@ window.onload = function() {
 
     let savebutton = document.getElementById("save-homepage-sections-button")
     savebutton.addEventListener("click", onSave)
+
+    let deletebutton = document.getElementById("delete-homepage-sections-button")
+    deletebutton.addEventListener("click", onDelete)
 
     let types = [
         "text",

@@ -623,6 +623,34 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 
 	})))
 
+	r.PathPrefix("/homepage/edit").Methods("DELETE").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		defer req.Body.Close()
+
+		page := models.Page{}
+
+		err := json.NewDecoder(req.Body).Decode(&page)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		fmt.Println(page)
+
+		ctx := req.Context()
+		if page.ID == "" || page.ID == "None" {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		} else {
+			err := db.RemovePage(ctx, page.ID)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})))
+
 	r.PathPrefix("/tags/edit").Methods("GET").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// defer req.Body.Close()
 		// vars := mux.Vars(req)
