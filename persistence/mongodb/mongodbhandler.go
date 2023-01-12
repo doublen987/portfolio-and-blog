@@ -161,7 +161,7 @@ func NewMongodbHandler(connection string, databaseName string) (*MongodbHandler,
 	}
 
 	if err == nil {
-		if count, err := handler.CountElements(context.Background(), "settings"); err == nil && count > 0 {
+		if count, nerr := handler.CountElements(context.Background(), "settings"); nerr == nil && count == 0 {
 			handler.AddSettings(context.Background(), models.Settings{
 				WebsiteName:      "MySite",
 				Logo:             "",
@@ -174,7 +174,7 @@ func NewMongodbHandler(connection string, databaseName string) (*MongodbHandler,
 			})
 		}
 
-		if count, err := handler.CountElements(context.Background(), "tags"); err == nil && count == 0 {
+		if count, nerr := handler.CountElements(context.Background(), "tags"); nerr == nil && count == 0 {
 			handler.RemoveAllTags(context.Background())
 
 			tagsToAdd := []models.Tag{
@@ -303,7 +303,7 @@ func NewMongodbHandler(connection string, databaseName string) (*MongodbHandler,
 			handler.AddTags(context.Background(), tagsToAdd)
 		}
 
-		if count, err := handler.CountElements(context.Background(), "pages"); err == nil && count == 0 {
+		if count, nerr := handler.CountElements(context.Background(), "pages"); nerr == nil && count == 0 {
 			handler.RemoveAll(context.Background(), "pages")
 			sections := make([]interface{}, 2)
 
