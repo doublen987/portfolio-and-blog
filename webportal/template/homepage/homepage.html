@@ -52,9 +52,10 @@
             <%
                 if sectionType == "image" {
                     imageSection, _ := section.(models.ImageSection)
+                    fmt.Println(section)
             %>
-                <div class="page-section image-section">
-                    <img src="/content/images/<%=s imageSection.Image %>" class="image-section-image"/>
+                <div class="page-section image-section" style="text-align: <%=s imageSection.Align %>;">
+                    <img src="/content/images/<%=s imageSection.Image %>" class="image-section-image" width="<%=f imageSection.Width %>" height="<%=f imageSection.Height %>"/>
                 </div>
             <%  } %>
             <%

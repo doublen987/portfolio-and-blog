@@ -4,6 +4,7 @@
 package template
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/doublen987/Projects/MySite/server/persistence/models"
@@ -228,12 +229,19 @@ func Homepage(settings models.Settings, page models.Page2, w io.Writer) {
 
 		if sectionType == "image" {
 			imageSection, _ := section.(models.ImageSection)
+			fmt.Println(section)
 
 			_buffer.WriteString(`
-                <div class="page-section image-section">
+                <div class="page-section image-section" style="text-align: `)
+			hero.EscapeHTML(imageSection.Align, _buffer)
+			_buffer.WriteString(`;">
                     <img src="/content/images/`)
 			hero.EscapeHTML(imageSection.Image, _buffer)
-			_buffer.WriteString(`" class="image-section-image"/>
+			_buffer.WriteString(`" class="image-section-image" width="`)
+			hero.FormatFloat(float64(imageSection.Width), _buffer)
+			_buffer.WriteString(`" height="`)
+			hero.FormatFloat(float64(imageSection.Height), _buffer)
+			_buffer.WriteString(`"/>
                 </div>
             `)
 		}

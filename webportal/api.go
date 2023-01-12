@@ -229,9 +229,15 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 			if bla["type"] == "image" {
 				filename, _ := bla["filename"].(string)
+				width, _ := bla["width"].(float64)
+				height, _ := bla["height"].(float64)
+				align, _ := bla["align"].(string)
 
 				page.Sections = append(page.Sections, models.ImageSection{
-					Image: filename,
+					Image:  filename,
+					Width:  width,
+					Height: height,
+					Align:  align,
 				})
 			}
 			if bla["type"] == "3dmodel" {
@@ -555,6 +561,12 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				{
 					filename, _ := sectionMap["filename"].(string)
 					bytesStr, _ := sectionMap["bytes"].(string)
+					width, _ := sectionMap["width"].(float64)
+					height, _ := sectionMap["height"].(float64)
+					align, _ := sectionMap["align"].(string)
+
+					fmt.Println(reflect.TypeOf(sectionMap["width"]))
+					fmt.Printf("width: %f height: %f", width, width)
 
 					bytes, err := base64.StdEncoding.DecodeString(bytesStr)
 					if err != nil {
@@ -563,7 +575,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 						return
 					}
 
-					bla := make(map[string]string)
+					bla := make(map[string]interface{})
 					if len(bytes) != 0 {
 						newFileName, err := fh.AddFile(bytes, filename)
 						if err != nil {
@@ -577,6 +589,9 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 					}
 
 					bla["type"] = st
+					bla["width"] = width
+					bla["height"] = height
+					bla["align"] = align
 					page.Sections[index] = bla
 
 					fmt.Println(filename)

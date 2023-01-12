@@ -108,8 +108,11 @@ func (ms ModelSection) GetType() string {
 }
 
 type ImageSection struct {
-	ID    string `bson:"ID" json:"ID"`
-	Image string `bson:"image" json:"image"`
+	ID     string  `bson:"ID" json:"ID"`
+	Image  string  `bson:"image" json:"image"`
+	Width  float64 `bson:"width" json:"width"`
+	Height float64 `bson:"height" json:"height"`
+	Align  string  `bson:"align" json:"align"`
 }
 
 func (is ImageSection) GetType() string {

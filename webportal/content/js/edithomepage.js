@@ -153,6 +153,9 @@ function onCLickAddSection(section) {
             break;
             case "image": {
                 let sectionFilename = section.filename? section.filename : ""
+                let sectionWidth = section.width? section.width : 100
+                let sectionHeight = section.height? section.height : 100
+                let sectionAlign = section.align? section.align : "center"
                 let container = document.createElement("div")
                 container.classList.add("section-container")
                 container.classList.add("image-section-section-container")
@@ -167,8 +170,25 @@ function onCLickAddSection(section) {
                     <div>
                         <label for="homepage-section-editor-input" class="editor-label">Image: </label>
                         <input name="homepage-section-editor-input" type="file" accept="image/*" id="homepage-section-editor-input-${id}"></input>
+                        <div>
+                        <label>Width:</label><input type="text" accept="image/*" id="image-section-width-input-${id}" value="${sectionWidth}"></input>
+                        </div>
+                        <div>
+                        <label>Height:</label><input type="text" accept="image/*" id="image-section-height-input-${id}" value="${sectionHeight}"></input>
+                        </div>
+                        <div>
+                        <label>Align:</label><select id="image-section-align-input-${id}">
+                            <option ${sectionAlign == "center" ? "selected" : ""} value="center">Center</option>
+                            <option ${sectionAlign == "left" ? "selected" : ""} value="left">Left</option>
+                            <option ${sectionAlign == "right" ? "selected" : ""} value="right">Right</option>
+                        </select>
+                        </div>
                         <div class="homepage-image-section-id" >${id}</div>
                         <div class="homepage-image-filename" >${sectionFilename}</div>
+                        <div class="homepage-image-width" >${sectionWidth}</div>
+                        <div class="homepage-image-height" >${sectionHeight}</div>
+                        <div class="homepage-image-align" >${sectionAlign}</div>
+
                     </div>    
                 </div>`
 
@@ -529,9 +549,15 @@ function addStackSectionToSaveList(sections, currentsection) {
 function addImageSectionToSaveList(sections, currentsection) {
     let filename = currentsection.getElementsByClassName("homepage-image-filename")[0].innerHTML
     let id = currentsection.getElementsByClassName("homepage-image-section-id")[0].innerHTML
+    let imageWidth = parseFloat(document.getElementById("image-section-width-input-" + id).value)
+    let imageHeight = parseFloat(document.getElementById("image-section-height-input-" + id).value)
+    let imageAlign = document.getElementById("image-section-align-input-" + id).value
     sections.push({
         type: "image",
         filename:filename,
+        width: imageWidth,
+        height: imageHeight,
+        align: imageAlign,
         bytes: readers[id] && readers[id].result? readers[id].result.replace(new RegExp("data:image/(png|jpg|jpeg);base64,"),'') : []
     })
 }
