@@ -89,3 +89,7 @@
 
     text-align: center;
 }
+
+.section-model canvas {
+    height: 400px;
+}

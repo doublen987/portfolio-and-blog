@@ -188,7 +188,7 @@
                 let fileName = modelSections[i].getElementsByClassName("model-filename")[0].innerHTML
                 let sectionModel = modelSections[i].getElementsByClassName("section-model")[0]
                 let id = sectionModel.id
-                var stl_viewer = init3dViewer(id)
+                var stl_viewer = init3dViewer(id, {height: "250px"})
                 stl_viewer.add_model({id:i, filename: '/content/images/'+fileName})
             }
         }

@@ -1,5 +1,5 @@
 
-function init3dViewer(tagName) {
+function init3dViewer(tagName, options = {}) {
     // var scene = new THREE.Scene();
     // var camera = new THREE.PerspectiveCamera(75, domElement.innerWidth/domElement.innerHeight, 0.1, 1000);
 
