@@ -15,14 +15,14 @@ let state = {
 function readURL(input) {
     return () => {
         if (input.files && input.files[0]) {
-        reader = new FileReader();
-        reader.onload = function (e) {
-            let thumbnailImg = document.getElementById("settings-logo-image");
-            thumbnailImg.src = e.target.result;
-            thumbnailImg.width = 150;
-            thumbnailImg.height = 200;
-        };
-        reader.readAsDataURL(input.files[0]);
+            reader = new FileReader();
+            reader.onload = function (e) {
+                let thumbnailImg = document.getElementById("settings-logo-image");
+                thumbnailImg.src = e.target.result;
+                thumbnailImg.width = 150;
+                thumbnailImg.height = 200;
+            };
+            reader.readAsDataURL(input.files[0]);
         }
         fileName = input.files[0].name
     }
@@ -64,26 +64,27 @@ function saveSettings() {
             textColor1: textcolor1,
             textColor2: textcolor2,
             textColor3: textcolor3,
-            bytes: reader.result? reader.result.replace(new RegExp("data:image/(png|jpg|jpeg);base64,"),'') : []
+            bytes: reader.result? reader.result.replace(new RegExp("data:image\/[^;]+;base64,"),'') : [],
+            filename: fileName
         })
         });
         const content = await rawResponse;
       
-        console.log(content);
+        // console.log(content);
     };
 
     save()
 
-    console.log({
-        websiteName: websiteName,
-        backgroundColor1: bgcolor1,
-        backgroundColor2: bgcolor2,
-        backgroundColor3: bgcolor3,
-        textColor1: textcolor1,
-        textColor2: textcolor2,
-        textColor3: textcolor3,
-        bytes: reader.result? reader.result.replace(new RegExp("data:image/(png|jpg|jpeg);base64,"),'') : []
-    })
+    // console.log({
+    //     websiteName: websiteName,
+    //     backgroundColor1: bgcolor1,
+    //     backgroundColor2: bgcolor2,
+    //     backgroundColor3: bgcolor3,
+    //     textColor1: textcolor1,
+    //     textColor2: textcolor2,
+    //     textColor3: textcolor3,
+    //     bytes: reader.result? reader.result.replace(new RegExp("data:image\/[^;]+;base64,"),'') : []
+    // })
 }
 
 function changeTimeChart(monthChange) {
