@@ -229,3 +229,14 @@ svg:hover {
     cursor: pointer;
     
 }
+
+footer {
+    padding: 20px;
+    text-align: center;
+    background-color: var(--bg-color-1);
+    color: var(--text-color-1);
+}
+
+footer a {
+    color: var(--text-color-2);
+}
