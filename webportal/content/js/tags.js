@@ -82,6 +82,10 @@ function initTagModal() {
         console.log(i)
         let tagID = modaltags[i].getElementsByClassName("modal-tag-ID")[0]
         let tagThumbnail = modaltags[i].getElementsByClassName("modal-tag-thumbnail")[0]
+        console.log({ 
+            ID: tagID.innerHTML,
+            thumbnail: tagThumbnail.innerHTML
+        })
         modaltags[i].addEventListener("click", addTag({ 
             ID: tagID.innerHTML,
             thumbnail: tagThumbnail.innerHTML

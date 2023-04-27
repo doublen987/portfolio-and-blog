@@ -179,121 +179,145 @@ func NewMongodbHandler(connection string, databaseName string) (*MongodbHandler,
 
 			tagsToAdd := []models.Tag{
 				{
+					ID:                 "MongoDB",
 					Name:               "MongoDB",
 					Thumbnail:          "MongoDB-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "AWS",
 					Name:               "AWS",
 					Thumbnail:          "AWS-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "CSS3",
 					Name:               "CSS3",
 					Thumbnail:          "CSS3-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Docker",
 					Name:               "Docker",
 					Thumbnail:          "Docker-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Firebase",
 					Name:               "Firebase",
 					Thumbnail:          "Firebase-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Go",
 					Name:               "Go",
 					Thumbnail:          "Go-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Git",
 					Name:               "Git",
 					Thumbnail:          "Git-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Heroku",
 					Name:               "Heroku",
 					Thumbnail:          "Heroku-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "HTML5",
 					Name:               "HTML5",
 					Thumbnail:          "HTML5-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Java",
 					Name:               "Java",
 					Thumbnail:          "Java-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Javascript",
 					Name:               "JavaScript",
 					Thumbnail:          "JavaScript-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "JQuery",
 					Name:               "JQuery",
 					Thumbnail:          "Jquery_plain_wordmark-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Kubernetes",
 					Name:               "Kubernetes",
 					Thumbnail:          "Kubernetes-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "MySQL",
 					Name:               "MySQL",
 					Thumbnail:          "MySQL-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "NodeJS",
 					Name:               "NodeJS",
 					Thumbnail:          "NodeJS-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "PixiJS",
 					Name:               "PixiJS",
 					Thumbnail:          "PixiJS-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Postgresql",
 					Name:               "Postgresql",
 					Thumbnail:          "Postgresql-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "React",
 					Name:               "React",
 					Thumbnail:          "React-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Redis",
 					Name:               "Redis",
 					Thumbnail:          "Redis-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Typescript",
 					Name:               "Typescript",
 					Thumbnail:          "Typescript-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Vim",
 					Name:               "Vim",
 					Thumbnail:          "Vim-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Visual Studio",
 					Name:               "Visual Studio",
 					Thumbnail:          "Visual-Studio.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "WebGL",
 					Name:               "WebGL",
 					Thumbnail:          "WebGL-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
 				},
 				{
+					ID:                 "Webpack",
 					Name:               "Webpack",
 					Thumbnail:          "Webpack-logo.svg?storagetype=filesystem",
 					ThumbnailStretched: false,
@@ -509,7 +533,9 @@ func (handler *MongodbHandler) UpdatePost(ctx context.Context, post models.Post)
 	fields["title"] = post.Title
 	fields["content"] = post.Content
 	fields["description"] = post.Description
-	fields["thumbnail"] = post.Thumbnail
+	if post.Thumbnail != "" {
+		fields["thumbnail"] = post.Thumbnail
+	}
 	fields["thumbnailstretched"] = post.ThumbnailStretched
 	fields["lastedittimestamp"] = time.Now()
 	fields["hidden"] = post.Hidden
@@ -535,7 +561,6 @@ func (handler *MongodbHandler) UpdatePost(ctx context.Context, post models.Post)
 }
 func (handler *MongodbHandler) ReplacePost(ctx context.Context, post models.Post) error {
 	s := handler.Session
-
 
 	if id, err := primitive.ObjectIDFromHex(post.ID); err == nil {
 
@@ -795,7 +820,9 @@ func (handler *MongodbHandler) UpdateProject(ctx context.Context, project models
 	fields["title"] = project.Title
 	fields["description"] = project.Description
 	fields["link"] = project.Link
-	fields["thumbnail"] = project.Thumbnail
+	if project.Thumbnail != "" {
+		fields["thumbnail"] = project.Thumbnail
+	}
 	fields["thumbnailstretched"] = project.ThumbnailStretched
 
 	mpostTags := []string{}
@@ -1068,7 +1095,9 @@ func (handler *MongodbHandler) UpdateTag(ctx context.Context, tag models.Tag) er
 	fields["name"] = tag.Name
 	fields["content"] = tag.Content
 	fields["description"] = tag.Description
-	fields["thumbnail"] = tag.Thumbnail
+	if tag.Thumbnail != "" {
+		fields["thumbnail"] = tag.Thumbnail
+	}
 	fields["thumbnailstretched"] = tag.ThumbnailStretched
 
 	for key, value := range fields {
