@@ -203,19 +203,7 @@ svg:hover {
     padding: 20px;
 }
 
-.chart-container{
-    display: inline-block;
-    width: 59%;
-}
-
-.small-chart {
-    width: 40%;
-}
-
 @media screen and (max-width: 800px) {
-    .chart-container{
-        width: 100%;
-    }
     .sidemenu-container {
         display: none;
     }

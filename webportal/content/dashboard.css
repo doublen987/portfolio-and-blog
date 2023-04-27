@@ -7,3 +7,25 @@
     height: 200px;
     overflow-y: scroll;
 }
+
+.chart-container{
+    width: 100%;
+    max-width: 500px;
+}
+
+.small-chart {
+    width: 40%;
+}
+
+@media screen and (max-width: 800px) {
+    .chart-container{
+        width: 100%;
+    }
+    .sidemenu-container {
+        display: none;
+    }
+    .editor-container {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

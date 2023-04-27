@@ -33,24 +33,26 @@
                 
             </div>
             <div class="editor-item ip-management"></div>
-            <div class="editor-item social-media">
-                <div>
-                    <div class="group-header">
-                        Links
-                    </div>
-                    <div class="group-body">
-                        <%
-                            for _, soclink := range settings.SocialLinks {
-                        %>
-                                <div class="soclink">
-                                    <span><input class="soclink-name" type="text" value="<%==s soclink.Name %>"/></span>=<span><input class="sociallink-link" type="text" value="<%==s soclink.Link %>"/></span>
-                                </div>
-                        <%
-                            }
-                        %>
-                        <div></div>
-                    </div>
+            <div class="editor-item chart-container">
+                <div class="group-header">
+                    Number of site visitors
                 </div>
+                <div class="chart">
+                    <canvas id="myChart"></canvas>
+                </div>
+                <div>
+                    <button id="button-prev">Prev</button>
+                    <button id="button-next">Next</button>
+                </div>
+            </div>
+            <div class="editor-item chart-container">
+                <div class="group-header">
+                    Visitors by country
+                </div>
+                <canvas id="myChart2"></canvas>
+            </div>
+
+            <div class="editor-item social-media">
                 <div>
                     <div class="group-header">
                         Settings
@@ -96,18 +98,23 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="editor-item chart-container">
-                <div class="chart">
-                    <canvas id="myChart"></canvas>
-                </div>
                 <div>
-                    <button id="button-prev">Prev</button>
-                    <button id="button-next">Next</button>
+                    <div class="group-header">
+                        Links
+                    </div>
+                    <div class="group-body">
+                        <%
+                            for _, soclink := range settings.SocialLinks {
+                        %>
+                                <div class="soclink">
+                                    <span><input class="soclink-name" type="text" value="<%==s soclink.Name %>"/></span>=<span><input class="sociallink-link" type="text" value="<%==s soclink.Link %>"/></span>
+                                </div>
+                        <%
+                            }
+                        %>
+                        <div></div>
+                    </div>
                 </div>
-            </div>
-            <div class="editor-item chart-container small-chart">
-                <canvas id="myChart2"></canvas>
             </div>
 
         </div>
@@ -121,6 +128,7 @@
             'April',
             'May',
             'June',
+        
         ];
 
         const data = {

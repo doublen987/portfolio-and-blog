@@ -271,32 +271,26 @@ func HandleEditSettings(ctx context.Context, settings models.Settings, w io.Writ
                 
             </div>
             <div class="editor-item ip-management"></div>
-            <div class="editor-item social-media">
-                <div>
-                    <div class="group-header">
-                        Links
-                    </div>
-                    <div class="group-body">
-                        `)
-
-	for _, soclink := range settings.SocialLinks {
-
-		_buffer.WriteString(`
-                                <div class="soclink">
-                                    <span><input class="soclink-name" type="text" value="`)
-		_buffer.WriteString(soclink.Name)
-		_buffer.WriteString(`"/></span>=<span><input class="sociallink-link" type="text" value="`)
-		_buffer.WriteString(soclink.Link)
-		_buffer.WriteString(`"/></span>
-                                </div>
-                        `)
-
-	}
-
-	_buffer.WriteString(`
-                        <div></div>
-                    </div>
+            <div class="editor-item chart-container">
+                <div class="group-header">
+                    Number of site visitors
                 </div>
+                <div class="chart">
+                    <canvas id="myChart"></canvas>
+                </div>
+                <div>
+                    <button id="button-prev">Prev</button>
+                    <button id="button-next">Next</button>
+                </div>
+            </div>
+            <div class="editor-item chart-container">
+                <div class="group-header">
+                    Countries
+                </div>
+                <canvas id="myChart2"></canvas>
+            </div>
+
+            <div class="editor-item social-media">
                 <div>
                     <div class="group-header">
                         Settings
@@ -358,18 +352,31 @@ func HandleEditSettings(ctx context.Context, settings models.Settings, w io.Writ
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="editor-item chart-container">
-                <div class="chart">
-                    <canvas id="myChart"></canvas>
-                </div>
                 <div>
-                    <button id="button-prev">Prev</button>
-                    <button id="button-next">Next</button>
+                    <div class="group-header">
+                        Links
+                    </div>
+                    <div class="group-body">
+                        `)
+
+	for _, soclink := range settings.SocialLinks {
+
+		_buffer.WriteString(`
+                                <div class="soclink">
+                                    <span><input class="soclink-name" type="text" value="`)
+		_buffer.WriteString(soclink.Name)
+		_buffer.WriteString(`"/></span>=<span><input class="sociallink-link" type="text" value="`)
+		_buffer.WriteString(soclink.Link)
+		_buffer.WriteString(`"/></span>
+                                </div>
+                        `)
+
+	}
+
+	_buffer.WriteString(`
+                        <div></div>
+                    </div>
                 </div>
-            </div>
-            <div class="editor-item chart-container small-chart">
-                <canvas id="myChart2"></canvas>
             </div>
 
         </div>

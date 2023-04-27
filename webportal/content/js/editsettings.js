@@ -4,8 +4,8 @@ let reader = new FileReader();
 let fileName = ""
 let state = {
     timeChart: {
-        year: 2022,
-        month: 2
+        year: 2023,
+        month: 4
     },
     chronologicalData: [
             
@@ -116,9 +116,11 @@ function changeTimeChart(monthChange) {
             maxmonth = 12
         }
 
-        let newMin = year+ "-" + month + "-01"
-        let newMax = maxyear+ "-" + maxmonth + "-01"
+        let newMin = year+ "-" + String(month).padStart(2,'0') + "-01"
+        let newMax = maxyear+ "-" + String(maxmonth).padStart(2,'0') + "-01"
         
+        console.log(newMin)
+        console.log(newMax)
 
         myChart.options.scales.x.min = newMin
         myChart.options.scales.x.max = newMax
@@ -131,6 +133,7 @@ function changeTimeChart(monthChange) {
                 year: year
             }
         }
+        console.log(state)
     }
 }
 
@@ -141,7 +144,7 @@ function initCharts() {
         type: 'bar',
         data: {
             datasets: [{
-                label: '# of Votes',
+                label: '# of site visitors per day',
                 data: [
                     // {
                     //     x: '2022/04/06',
@@ -170,12 +173,12 @@ function initCharts() {
                     time: {
                         unit: 'day',
                         displayFormats: {
-                            day: 'yyyy/MM/dd'
+                            day: 'yyyy-MM-dd'
 
                         }
                     },
-                    min: '2022-11-09',
-                    max: '2022-11-14'
+                    min: '2023-04-01',
+                    max: '2023-04-30'
                 },
                 y: {
                     beginAtZero: true
@@ -239,10 +242,12 @@ async function getStats() {
     for(let i = 0; i < data.length; i++) {
         let pageNames = Object.keys(data[i].countries)
         for(let j = 0; j < pageNames.length; j++) {
-            if(countries[pageNames[j]] != undefined)
-                countries[pageNames[j]] += data[i].countries[pageNames[j]]
-            else
-                countries[pageNames[j]] = 0
+            if(pageNames[j] != "InvalidIPaddress" && pageNames[j] != "-") {
+                if(countries[pageNames[j]] != undefined)
+                    countries[pageNames[j]] += data[i].countries[pageNames[j]]
+                else
+                    countries[pageNames[j]] = 0
+            }
         }
     }
 
@@ -283,7 +288,6 @@ window.onload = () => {
 
     let buttonNext = document.getElementById("button-next");
     let buttonPrev = document.getElementById("button-prev");
-    buttonNext.addEventListener("click", changeTimeChart(+1)
-    )
+    buttonNext.addEventListener("click", changeTimeChart(+1))
     buttonPrev.addEventListener("click", changeTimeChart(-1))
 }
