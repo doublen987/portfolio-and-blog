@@ -1,4 +1,4 @@
-<%: func HandleBlog(settings models.Settings, posts []models.Post, currentPage int, pageBlockStart int, numOfPages int, w io.Writer) %>
+<%: func HandleBlog(ctx context.Context, settings models.Settings, posts []models.Post, currentPage int, pageBlockStart int, numOfPages int, w io.Writer) %>
 <%~ "index.html" %>
 <%@ body { %>
     <script src="/content/js/gettags.js"></script>

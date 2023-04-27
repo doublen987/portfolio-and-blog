@@ -519,14 +519,12 @@ func (handler *MongodbHandler) UpdatePost(ctx context.Context, post models.Post)
 		mpostTags = append(mpostTags, tag.ID)
 	}
 
-	fmt.Println(mpostTags)
 	fields["tags"] = mpostTags
 
 	for key, value := range fields {
 		updateFields = append(updateFields, bson.E{key, value})
 	}
 
-	fmt.Println(primitive.ObjectIDFromHex(post.ID))
 	if id, err := primitive.ObjectIDFromHex(post.ID); err == nil {
 		_, err := s.Database(handler.DatabaseName).Collection("posts").UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", updateFields}})
 
@@ -538,7 +536,7 @@ func (handler *MongodbHandler) UpdatePost(ctx context.Context, post models.Post)
 func (handler *MongodbHandler) ReplacePost(ctx context.Context, post models.Post) error {
 	s := handler.Session
 
-	fmt.Println(primitive.ObjectIDFromHex(post.ID))
+
 	if id, err := primitive.ObjectIDFromHex(post.ID); err == nil {
 
 		newPost := MongoPost{
@@ -668,7 +666,6 @@ func (handler *MongodbHandler) GetPosts(ctx context.Context) ([]models.Post, err
 	//fmt.Println(tagmap)
 	cursor.All(ctx, &mposts)
 	defer cursor.Close(ctx)
-	fmt.Println(mposts)
 	for _, mpost := range mposts {
 
 		newPostTags := []models.Tag{}
@@ -989,7 +986,6 @@ func (handler *MongodbHandler) UpdateKnowledgeTimelineEvent(ctx context.Context,
 	// 	return models.Project{}, err
 	// }
 
-	fmt.Println(primitive.ObjectIDFromHex(event.ID))
 	if oid, err := primitive.ObjectIDFromHex(event.ID); err == nil {
 		updatedEvent := MongoKnowledgeTimelineEvent{
 			ID:          oid,
@@ -1136,7 +1132,6 @@ func (handler *MongodbHandler) UpdatePage(ctx context.Context, page models.Page)
 		updateFields = append(updateFields, bson.E{key, value})
 	}
 
-	fmt.Println(page.ID)
 	_, err := s.Database(handler.DatabaseName).Collection("pages").UpdateOne(ctx, bson.D{{"ID", page.ID}}, bson.D{{"$set", updateFields}})
 
 	return err

@@ -1,4 +1,4 @@
-<%: func HandleKnowledgeTimeline(settings models.Settings, timeline []models.TimelineEvent, w io.Writer)%>
+<%: func HandleKnowledgeTimeline(ctx context.Context, settings models.Settings, timeline []models.TimelineEvent, w io.Writer)%>
 <%~ "index.html" %>
 <%@ body { %>
     <div class="timeline-container">

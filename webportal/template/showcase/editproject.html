@@ -1,4 +1,4 @@
-<%: func HandleEditProject(settings models.Settings, projects []models.Project, tags []models.Tag, w io.Writer)%>
+<%: func HandleEditProject(ctx context.Context, settings models.Settings, projects []models.Project, tags []models.Tag, w io.Writer)%>
 <%~ "index.html" %>
 <%@ body { %>
     <div class="editor-container">

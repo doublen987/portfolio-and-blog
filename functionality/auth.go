@@ -14,14 +14,23 @@ var (
 	ErrParsingClaims            = errors.New("can't parse claims")
 )
 
-var jwtKey = []byte("OMEGALUL")
+type SessionData struct {
+	User User `bson:"user"`
+}
+
+var jwtKey []byte
 
 var users = map[string]string{
 	"Nikola": "Nesovic",
 }
 
+func SetJWTSecret(secret string) {
+	jwtKey = []byte(secret)
+}
+
 type User struct {
 	Username string `json:"username"`
+	IsAdmin  bool   `json:"isAdmin"`
 }
 
 type LoginOutput struct {

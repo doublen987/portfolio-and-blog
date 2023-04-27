@@ -37,7 +37,7 @@ func (fh FileSystemFileHandler) AddFile(file []byte, fileName string) (string, e
 }
 
 func (fh FileSystemFileHandler) GetFile(fileName string) ([]byte, error) {
-	fmt.Println("Retrieving File", fileName)
+	//fmt.Println("Retrieving File", fileName)
 	file, err := os.Open("webportal/content/images/" + fileName)
 	if err != nil {
 		return []byte{}, err
@@ -58,7 +58,7 @@ func (fh FileSystemFileHandler) GetFile(fileName string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	fmt.Printf("Sucessfully retrieving file %s %d\n", fileName, len(retrievedBytes))
+	//fmt.Printf("Sucessfully retrieving file %s %d\n", fileName, len(retrievedBytes))
 	return retrievedBytes, nil
 }
 

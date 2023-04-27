@@ -58,7 +58,7 @@ func (fh S3FileHandler) AddFile(file []byte, filename string) (string, error) {
 
 	uuid, err := uuid.NewV4()
 	if err != nil {
-		fmt.Println(err.Error())
+		//fmt.Println(err.Error())
 		return "", err
 	}
 
@@ -80,7 +80,7 @@ func (fh S3FileHandler) AddFile(file []byte, filename string) (string, error) {
 
 	_, err = fh.client.PutObject(context.TODO(), &input)
 	if err != nil {
-		fmt.Println(err.Error())
+		//fmt.Println(err.Error())
 		return "", err
 	}
 
@@ -95,13 +95,13 @@ func (fh S3FileHandler) GetFile(filename string) ([]byte, error) {
 	})
 
 	if err != nil {
-		fmt.Println(err.Error())
+		//fmt.Println(err.Error())
 		return []byte{}, err
 	}
 
 	imageBytes, err := ioutil.ReadAll(output.Body)
 	if err != nil {
-		fmt.Println(err.Error())
+		//fmt.Println(err.Error())
 		return []byte{}, err
 	}
 

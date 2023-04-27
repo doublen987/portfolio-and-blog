@@ -29,6 +29,8 @@ func startServer() {
 		log.Fatal(err)
 	}
 
+	functionality.SetJWTSecret(config.JWTSecretKey)
+
 	address := config.Host + ":" + config.Port
 	tlsaddress := config.Host + ":" + config.PortTLS
 	log.Println("Starting web server on addres: ", address)

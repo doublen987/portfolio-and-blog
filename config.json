@@ -4,5 +4,6 @@
     "databasetype": 3,
     "filestoragetype": "s3",
     "dbconnection": "mongodb://127.0.0.1:27017",
-    "frontend": "./webportal/template"
+    "frontend": "./webportal/template",
+    "jwt_secret_key": "bruhbruh"
 }

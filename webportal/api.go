@@ -83,6 +83,33 @@ const KeyAuthUserID key = "auth_user_id"
 // 	amw.tokenUsers["deadbeef"] = "user0"
 // }
 
+func SessionDataMiddleware() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c, err := r.Cookie("token")
+
+			if err != nil {
+				fmt.Println(err)
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			tknStr := c.Value
+
+			if user, err := functionality.Authenticate(tknStr); err == nil {
+				ctx := r.Context()
+				ctx = context.WithValue(ctx, "sessionData", functionality.SessionData{
+					User: user,
+				})
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func IPLoggerMiddleware(database persistence.DBHandler) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 
@@ -135,6 +162,9 @@ func Middleware(next http.Handler) http.Handler {
 			log.Printf("Authenticated user %s\n", user.Username)
 			ctx := r.Context()
 			ctx = context.WithValue(ctx, KeyAuthUserID, user)
+			// ctx = context.WithValue(ctx, "sessionData", functionality.SessionData{
+			// 	User: user,
+			// })
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			http.Error(w, "Forbidden", http.StatusForbidden)
@@ -165,6 +195,8 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 	r := rootrouter.PathPrefix("").Subrouter()
 
 	r.Use(IPLoggerMiddleware(db))
+
+	r.Use(SessionDataMiddleware())
 
 	r.Path("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		//template.Homepage("Hi there!", "My name is Nikola, I'm a full-stack web developer from Belgrade, Serbia. Welcome to my website, here you can find all sorts of information about me, projects I've worked on, and technologies I'm currently interested in!", w)
@@ -248,12 +280,12 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				})
 			}
 		}
-		template.Homepage(settings, page, w)
+		template.Homepage(ctx, settings, page, w)
 	})
 
 	r.PathPrefix("/login").Methods("GET").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-
-		template.HandleLogin(settings, "", w)
+		ctx := req.Context()
+		template.HandleLogin(ctx, settings, "", w)
 	})
 
 	r.PathPrefix("/login").Methods("POST").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -265,25 +297,25 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		authenticated, err := db.Authenticate(ctx, username, password)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			template.HandleLogin(settings, "Server error", w)
+			template.HandleLogin(ctx, settings, "Server error", w)
 			return
 		}
 
 		if !authenticated {
 			w.WriteHeader(http.StatusInternalServerError)
-			template.HandleLogin(settings, "Server error", w)
+			template.HandleLogin(ctx, settings, "Server error", w)
 			return
 		}
 
 		out, err := functionality.GenerateJWTToken(username, password)
 		if err == functionality.ErrUsernamePasswordNotFound {
 			w.WriteHeader(http.StatusBadRequest)
-			template.HandleLogin(settings, "Wrong username or password", w)
+			template.HandleLogin(ctx, settings, "Wrong username or password", w)
 			//http.Redirect(w, req, "/", http.StatusBadRequest)
 			return
 		} else if err == functionality.ErrCreatingJWT {
 			w.WriteHeader(http.StatusInternalServerError)
-			template.HandleLogin(settings, "Error occured, try again", w)
+			template.HandleLogin(ctx, settings, "Error occured, try again", w)
 			//http.Redirect(w, req, "/", http.StatusInternalServerError)
 			return
 		}
@@ -338,7 +370,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		// 	"linkedin": "https://www.linkedin.com/in/nikola-nesovic-24214219a/",
 		// 	"email":    "doublen987@gmail.com",
 		// }
-		template.HandleEditSettings(settings, w)
+		template.HandleEditSettings(ctx, settings, w)
 	})))
 
 	r.PathPrefix("/dashboard").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -469,7 +501,9 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		template.HandleEditHomePage(settings, "Hi, there", pages, sections, tags, w)
+		ctx := req.Context()
+
+		template.HandleEditHomePage(ctx, settings, "Hi, there", pages, sections, tags, w)
 	})))
 
 	r.PathPrefix("/homepage/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -634,7 +668,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		template.HandleEditHomePage(settings, "", pages, []models.PageSection{}, tags, w)
+		template.HandleEditHomePage(ctx, settings, "", pages, []models.PageSection{}, tags, w)
 
 	})))
 
@@ -684,7 +718,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditTag(settings, tags, w)
+		template.HandleEditTag(ctx, settings, tags, w)
 	})))
 
 	r.PathPrefix("/tags/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -769,7 +803,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			fmt.Println(tag.Name)
 			fmt.Println(tag.Content)
 
-			template.HandleEditTag(settings, tags, w)
+			template.HandleEditTag(ctx, settings, tags, w)
 		}
 		if method == "DELETE" {
 			selectedTagId := req.FormValue("SelectedTag")
@@ -791,7 +825,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 
 			fmt.Printf("Deleted tag: $s\n", selectedTagId)
-			template.HandleEditTag(settings, tags, w)
+			template.HandleEditTag(ctx, settings, tags, w)
 		}
 
 	})))
@@ -828,7 +862,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditUsers(settings, users, w)
+		template.HandleEditUsers(ctx, settings, users, w)
 	})))
 
 	r.PathPrefix("/users/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -916,7 +950,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			fmt.Println(user.Username)
 			fmt.Println(user.Password)
 
-			template.HandleEditUsers(settings, users, w)
+			template.HandleEditUsers(ctx, settings, users, w)
 		}
 		if method == "DELETE" {
 			selectedUserId := req.FormValue("SelectedUser")
@@ -938,7 +972,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 
 			fmt.Printf("Deleted user: $s\n", selectedUserId)
-			template.HandleEditUsers(settings, users, w)
+			template.HandleEditUsers(ctx, settings, users, w)
 		}
 
 	})))
@@ -960,12 +994,13 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 		}
 		ctx := req.Context()
 		posts, err := db.GetPosts(ctx)
-		fmt.Println(posts)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditPost(settings, posts, tags, w)
+
+		template.HandleEditPost(ctx, settings, posts, tags, w)
+
 	})))
 
 	r.PathPrefix("/blog/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -999,6 +1034,8 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				tags = append(tags, models.Tag{ID: tag})
 			}
 			post.Tags = tags
+
+			fmt.Println(tags)
 
 			//2. retrieve file from posted form-data
 			var fileName string = ""
@@ -1071,10 +1108,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				return
 			}
 
-			fmt.Println(post.Title)
-			fmt.Println(post.Content)
-
-			template.HandleEditPost(settings, posts, alltags, w)
+			template.HandleEditPost(ctx, settings, posts, alltags, w)
 		}
 		if method == "DELETE" {
 			selectedPostId := req.FormValue("SelectedPost")
@@ -1102,7 +1136,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 
 			fmt.Printf("Deleted post: $s\n", selectedPostId)
-			template.HandleEditPost(settings, posts, tags, w)
+			template.HandleEditPost(ctx, settings, posts, tags, w)
 		}
 		if method == "PUBLISH" {
 			selectedPostId := req.FormValue("SelectedPost")
@@ -1129,7 +1163,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				return
 			}
 			fmt.Printf("Published post: $s\n", selectedPostId)
-			template.HandleEditPost(settings, posts, tags, w)
+			template.HandleEditPost(ctx, settings, posts, tags, w)
 		}
 
 	})))
@@ -1155,7 +1189,8 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditProject(settings, projects, tags, w)
+		template.HandleEditProject(ctx, settings, projects, tags, w)
+
 	})))
 
 	r.PathPrefix("/projects/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -1219,7 +1254,6 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			project.Description = req.FormValue("Description")
 			project.Link = req.FormValue("Link")
 			project.Thumbnail = fileName
-			fmt.Println(req.FormValue("ThumbnailStretched"))
 			if req.FormValue("ThumbnailStretched") == "true" {
 				project.ThumbnailStretched = true
 			} else {
@@ -1257,7 +1291,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 
-			template.HandleEditProject(settings, projects, tags, w)
+			template.HandleEditProject(ctx, settings, projects, tags, w)
 		}
 		if method == "DELETE" {
 			selectedProjectId := req.FormValue("SelectedProject")
@@ -1286,7 +1320,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 
-			template.HandleEditProject(settings, projects, tags, w)
+			template.HandleEditProject(ctx, settings, projects, tags, w)
 		}
 
 	})))
@@ -1307,7 +1341,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		template.HandleEditKnowledgeTimeline(settings, knowledgeTimeline, w)
+		template.HandleEditKnowledgeTimeline(ctx, settings, knowledgeTimeline, w)
 	})))
 
 	r.PathPrefix("/knowledgetimeline/edit").Methods("POST").Handler(Middleware(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -1380,7 +1414,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			fmt.Println(event.Title)
 			fmt.Println(event.Description)
 
-			template.HandleEditKnowledgeTimeline(settings, events, w)
+			template.HandleEditKnowledgeTimeline(ctx, settings, events, w)
 		}
 		if method == "DELETE" {
 			selectedEventId := req.FormValue("SelectedEvent")
@@ -1402,7 +1436,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			}
 
 			fmt.Printf("Deleted knowledge timeline event: $s\n", selectedEventId)
-			template.HandleEditKnowledgeTimeline(settings, events, w)
+			template.HandleEditKnowledgeTimeline(ctx, settings, events, w)
 		}
 
 	})))
@@ -1415,8 +1449,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		fmt.Println(projects)
-		template.HandleShowcase(settings, projects, w)
+		template.HandleShowcase(ctx, settings, projects, w)
 	})
 
 	r.PathPrefix("/blog/{postID}").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -1438,7 +1471,8 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		template.HandlePost(settings, links, post, w)
+
+		template.HandlePost(ctx, settings, links, post, w)
 	})
 
 	r.PathPrefix("/blog").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -1512,7 +1546,8 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		template.HandleBlog(settings, posts, currentPage, pageBlockStart, int(numOfPages), w)
+		ctx := req.Context()
+		template.HandleBlog(ctx, settings, posts, currentPage, pageBlockStart, int(numOfPages), w)
 	})
 
 	r.PathPrefix("/knowledgetimeline").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -1525,7 +1560,7 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			return
 		}
 
-		template.HandleKnowledgeTimeline(settings, timeline, w)
+		template.HandleKnowledgeTimeline(ctx, settings, timeline, w)
 	})
 
 	//r.PathPrefix("/content/").Handler(http.StripPrefix("/content/", http.FileServer(http.Dir("./webportal/content"))))
@@ -1568,12 +1603,11 @@ func RunAPI(dbtype uint8, endpoint string, cert string, key string, tlsendpoint 
 			w.Header().Set("content-type", "image/svg+xml")
 			break
 		default:
-			fmt.Println(fileextension)
 			w.Header().Set("content-type", "image")
 		}
 
 		w.Write(imageBytes)
-		w.WriteHeader(http.StatusOK)
+		//w.WriteHeader(http.StatusOK)
 		return
 	}))
 

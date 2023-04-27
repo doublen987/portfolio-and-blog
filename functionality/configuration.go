@@ -24,6 +24,7 @@ var (
 	MessageBrokerTypeDefault   = "amqp"
 	AMQPMessageBrokerDefault   = "amqp://guest:guest@localhost:5672"
 	KafkaMessageBrokersDefault = []string{"localhost:9092"}
+	JWTSecretKeyDefault        = ""
 )
 
 type ServiceConfig struct {
@@ -41,6 +42,7 @@ type ServiceConfig struct {
 	MessageBrokerType   string   `json:"message_broker_type"`
 	AMQPMessageBroker   string   `json:"amqp_message_broker"`
 	KafkaMessageBrokers []string `json:"kafka_message_brokers"`
+	JWTSecretKey        string   `json:"jwt_secret_key"`
 }
 
 func ExtractConfiguration(filename string) (ServiceConfig, error) {
@@ -59,6 +61,7 @@ func ExtractConfiguration(filename string) (ServiceConfig, error) {
 		MessageBrokerTypeDefault,
 		AMQPMessageBrokerDefault,
 		KafkaMessageBrokersDefault,
+		JWTSecretKeyDefault,
 	}
 
 	file, err := os.Open(filename)
@@ -96,6 +99,9 @@ func ExtractConfiguration(filename string) (ServiceConfig, error) {
 	}
 	if FileStorageType := os.Getenv("FILE_STORAGE_TYPE"); FileStorageType != "" {
 		conf.FileStorageType = FileStorageType
+	}
+	if FileStorageType := os.Getenv("JWT_SECRET_KEY"); FileStorageType != "" {
+		conf.JWTSecretKey = FileStorageType
 	}
 	return conf, err
 }
