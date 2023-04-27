@@ -39,7 +39,6 @@ main {
 
 .main-header {
     width: 100%;
-    height: 30px;
     background-color: var(--bg-color-2);
     z-index: 1;
 }
@@ -136,9 +135,9 @@ svg:hover {
 
 #modal {
     left: 0px;
-    top: 43px;
-    position:fixed;
-    height: 100%;
+    top: 0px;
+    position:relative;
+    height: 500px;
     width: 200px;
     background-color: var(--bg-color-1);
     padding-top: 40px;
@@ -146,12 +145,12 @@ svg:hover {
 }
 
 .modal-visible {
-    visibility: visible;
+    display: inline-block;
     
 }
 
 .modal-hidden {
-    visibility: hidden;
+    display: none;
 }
 
 .modal-nav-items {

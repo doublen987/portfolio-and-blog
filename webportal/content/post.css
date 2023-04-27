@@ -20,6 +20,15 @@
     color: var(--text-color-2);;
 }
 
+.post-tag {
+    padding: 2px;
+    margin: 2px;
+    margin-bottom: 4px;
+    border-radius: 10px;
+    border: 2px solid var(--text-color-1);
+    background-color: var(--text-color-3);
+}
+
 .post-holder {
     padding-left: 10%;
     padding-right: 10%;

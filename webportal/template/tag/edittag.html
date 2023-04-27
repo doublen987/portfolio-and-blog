@@ -7,10 +7,10 @@
     <script src="/content/js/edittag.js"></script>
 
     <div class="editor-container">
-        <div class="main-form-container"></div>
+        <div class="main-form-container">
         <form id="form1" action="/tags/edit" enctype="multipart/form-data" method="POST">
             <div class="input-container">
-                <label for="SelectedTag" class="editor-label">Choose a post:</label>
+                <label for="SelectedTag" class="editor-label">Choose a tag:</label>
                 <select name="SelectedTag" id="chosen-tag" class="editor-select">
                     <option value="None">New tag</option>
                     <% for _, tag := range tags { %>
