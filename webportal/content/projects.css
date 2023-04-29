@@ -2,8 +2,11 @@
     display: inline-block;
     background-color: var(--bg-color-2);
     width: 300px;
-    height: 350px;
+    height: 400px;
     overflow: hidden;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
 }
 
 .project-title{
@@ -33,6 +36,7 @@
 .card-containter{
     text-align: center;
     width: 100%;
+    padding-top: 70px;
 }
 
 .project-description {
@@ -73,4 +77,16 @@
 
 .project-link-proprietary {
     font-size: 20px;
+}
+
+.project-tags {
+    width: 100%;
+    text-align: center;
+    bottom: 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    justify-items: center;
 }

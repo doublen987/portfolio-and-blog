@@ -285,7 +285,7 @@ func HandleEditSettings(ctx context.Context, settings models.Settings, w io.Writ
             </div>
             <div class="editor-item chart-container">
                 <div class="group-header">
-                    Countries
+                    Visitors by country
                 </div>
                 <canvas id="myChart2"></canvas>
             </div>
@@ -390,6 +390,7 @@ func HandleEditSettings(ctx context.Context, settings models.Settings, w io.Writ
             'April',
             'May',
             'June',
+        
         ];
 
         const data = {

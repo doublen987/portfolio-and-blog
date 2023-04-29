@@ -28,8 +28,16 @@
                         <% } %>
                     </div>
                 </div>
+                <div class="project-tags">
+                    <% for _, tag := range project.Tags { %>
+                        <div class="post-tag">
+                            <img class="tag-thumbnail-image" src="/content/images/<%=s tag.Thumbnail %>">
+                        </div>
+                    <% } %>
+                </div>
             </div>
             
         <% } %> 
     </div>
 <% } %>
+

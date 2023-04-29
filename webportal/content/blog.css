@@ -1,3 +1,7 @@
+.posts-container {
+    padding-top: 60px;
+}
+
 .post-card{
     background-color: var(--bg-color-2);
     width: 500px;

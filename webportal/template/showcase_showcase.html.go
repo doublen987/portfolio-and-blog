@@ -251,6 +251,19 @@ func HandleShowcase(ctx context.Context, settings models.Settings, projects []mo
 		_buffer.WriteString(`
                     </div>
                 </div>
+                <div class="project-tags">
+                    `)
+		for _, tag := range project.Tags {
+			_buffer.WriteString(`
+                        <div class="post-tag">
+                            <img class="tag-thumbnail-image" src="/content/images/`)
+			hero.EscapeHTML(tag.Thumbnail, _buffer)
+			_buffer.WriteString(`">
+                        </div>
+                    `)
+		}
+		_buffer.WriteString(`
+                </div>
             </div>
             
         `)
