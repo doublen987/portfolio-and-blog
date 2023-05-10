@@ -1,6 +1,7 @@
 package filesystemfilehandler
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -18,8 +19,15 @@ func NewFileSystemFileHandler() (*FileSystemFileHandler, error) {
 func (fh FileSystemFileHandler) AddFile(file []byte, fileName string) (string, error) {
 	fmt.Println("Uploading File")
 
+	s := strings.Split(fileName, ".")
+	if len(s) < 1 {
+		return "", errors.New("Invalid file name")
+	}
+
+	fileextension := s[len(s)-1]
+
 	//3. write temporary file on our server
-	tempFile, err := ioutil.TempFile("webportal/content/images", "upload-*.png")
+	tempFile, err := ioutil.TempFile("webportal/content/images", "upload-*."+fileextension)
 	if err != nil {
 		fmt.Println(err)
 		return "", err
