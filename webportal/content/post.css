@@ -4,6 +4,7 @@
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: flex-start;
+    padding-top: 40px;
     width: 100%;
 }
 .link-holder {

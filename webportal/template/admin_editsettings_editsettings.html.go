@@ -86,6 +86,9 @@ func HandleEditSettings(ctx context.Context, settings models.Settings, w io.Writ
                                 <a href="/dashboard/">Dashboard</a>
                             </li>
                             <li class="admin-nav-item">
+                                <a href="/users/edit">Users</a>
+                            </li>
+                            <li class="admin-nav-item">
                                 <a href="/blog/edit">Posts</a>
                             </li>
                             <li class="admin-nav-item">

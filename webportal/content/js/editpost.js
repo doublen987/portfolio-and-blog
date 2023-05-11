@@ -30,14 +30,23 @@ function onImageError() {
 function initTinyMCE() {
     tinymce.init({
         selector:'#post-content',
-        plugins: 'codesample image',
-        toolbar: 'codesample',
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks codesample fullscreen code',
+            'insertdatetime media table paste codesample help wordcount tiny_mce_wiris'
+        ],
+        toolbar: 'undo redo | formatselect | ' +
+        'bold italic backcolor | alignleft aligncenter ' +
+        'alignright alignjustify | bullist numlist outdent indent | ' +
+        'removeformat | help | image | codesample |' +
+        'tiny_mce_wiris_formulaEditor | tiny_mce_wiris_formulaEditorChemistry | code',
         automatic_uploads: true,
         images_upload_url: '/content/images',
         image_dimensions: false,
         image_class_list: [
             {title: 'Responsive', value: 'img-responsive'}
         ],
+        external_plugins: { tiny_mce_wiris: 'https://www.wiris.net/demo/plugins/tiny_mce/plugin.js' },
         relative_urls: false,
         file_picker_callback: function (cb, value, meta) {
             var input = document.createElement('input');

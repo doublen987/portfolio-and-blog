@@ -86,6 +86,9 @@ func HandleEditUsers(ctx context.Context, settings models.Settings, users []mode
                                 <a href="/dashboard/">Dashboard</a>
                             </li>
                             <li class="admin-nav-item">
+                                <a href="/users/edit">Users</a>
+                            </li>
+                            <li class="admin-nav-item">
                                 <a href="/blog/edit">Posts</a>
                             </li>
                             <li class="admin-nav-item">
@@ -204,84 +207,87 @@ func HandleEditUsers(ctx context.Context, settings models.Settings, users []mode
     <script src="/content/js/edituser.js"></script>
 
     <div class="editor-container">
-        <form id="form1" action="/users/edit" enctype="multipart/form-data" method="POST">
-            <div class="input-container">
-                <label for="SelectedUser" class="editor-label">Choose a user:</label>
-                <select name="SelectedUser" id="chosen-user" class="editor-select">
-                    <option value="None">New user</option>
-                    `)
+        <div class="main-form-container">
+            <form id="form1" action="/users/edit" enctype="multipart/form-data" method="POST">
+                
+                <div class="input-container">
+                    <label for="SelectedUser" class="editor-label">Choose a user:</label>
+                    <select name="SelectedUser" id="chosen-user" class="editor-select">
+                        <option value="None">New user</option>
+                        `)
 	for _, user := range users {
 		_buffer.WriteString(`
-                        <option value="`)
+                            <option value="`)
 		hero.EscapeHTML(user.ID, _buffer)
 		_buffer.WriteString(`">`)
 		hero.EscapeHTML(user.Username, _buffer)
 		_buffer.WriteString(`</option>
-                        
-                    `)
+                            
+                        `)
 	}
 	_buffer.WriteString(`
-                </select>
-                `)
+                    </select>
+                    `)
 	for _, user := range users {
 		_buffer.WriteString(`
-                    <div id="username-`)
+                        <div id="username-`)
 		hero.EscapeHTML(user.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(user.Username, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="description-`)
+                        <div id="description-`)
 		hero.EscapeHTML(user.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(user.Description, _buffer)
 		_buffer.WriteString(`</div>
-                    <div id="thumbnail-`)
+                        <div id="thumbnail-`)
 		hero.EscapeHTML(user.ID, _buffer)
 		_buffer.WriteString(`" style="display:none;">`)
 		hero.EscapeHTML(user.Thumbnail, _buffer)
 		_buffer.WriteString(`</div>
-                    
-                `)
+                        
+                    `)
 	}
 	_buffer.WriteString(`
-            </div>
-            <div class="input-container">
-                <label for="user-username" class="editor-label">Username: </label>
-                <input name="Username" id="user-username" class="editor-input"></input>
-            </div>
-            <div class="input-container">
-                <label for="user-password" class="editor-label">Change Password: </label>
-                <input name="Password" id="user-password" class="editor-input"></input>
-            </div>
-            <div class="input-container">
-                <label for="user-password" class="editor-label">Old Password: </label>
-                <input name="OldPassword" id="user-old-password" class="editor-input"></input>
-            </div>
-            <div class="input-container">
-                <label for="user-description" class="editor-label">Description: </label>
-                <input name="Description" id="user-description" class="editor-input"></input>
-            </div>
-            <div class="input-container">
-                <label for="user-thumbnail" class="editor-label">Thumbnail: </label>
-                <input name="Thumbnail" type="file" accept="image/*" id="user-thumbnail"></input>
-            </div>
-            <div class="input-container">
-                <img id="user-thumbnail-image" src="/content/no-image.png">
-            </div>
-            <!-- <div class="label-container">
-                <div class="editor-label">Hidden: </div>
-                <select name="Hidden" id="post-hidden" class="text" >
-                    <option id="post-hidden-option-true" value="true">True</option>
-                    <option id="post-hidden-option-false" value="false">False</option>
-                </select>
-            </div> -->
-            <input type="hidden" id="user-thumbnail-name" name="ThumbnailName" value="">
-            <div class="submit-container">
-                <button id="submit-publish" class="submit-btn submit-hidden" type="submit" name="Send" value="PUBLISH">Publish</button>
-                <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
-                <button class="submit-btn" type="submit" name="Send" value="DELETE">Delete</button>
-            </div>
-        </form>
+                </div>
+                <div class="input-container">
+                    <label for="user-username" class="editor-label">Username: </label>
+                    <input name="Username" id="user-username" class="editor-input"></input>
+                </div>
+                <div class="input-container">
+                    <label for="user-password" class="editor-label">Change Password: </label>
+                    <input name="Password" id="user-password" class="editor-input"></input>
+                </div>
+                <div class="input-container">
+                    <label for="user-password" class="editor-label">Old Password: </label>
+                    <input name="OldPassword" id="user-old-password" class="editor-input"></input>
+                </div>
+                <div class="input-container">
+                    <label for="user-description" class="editor-label">Description: </label>
+                    <input name="Description" id="user-description" class="editor-input"></input>
+                </div>
+                <div class="input-container">
+                    <label for="user-thumbnail" class="editor-label">Thumbnail: </label>
+                    <input name="Thumbnail" type="file" accept="image/*" id="user-thumbnail"></input>
+                </div>
+                <div class="input-container">
+                    <img id="user-thumbnail-image" src="/content/no-image.png">
+                </div>
+                <!-- <div class="label-container">
+                    <div class="editor-label">Hidden: </div>
+                    <select name="Hidden" id="post-hidden" class="text" >
+                        <option id="post-hidden-option-true" value="true">True</option>
+                        <option id="post-hidden-option-false" value="false">False</option>
+                    </select>
+                </div> -->
+                <input type="hidden" id="user-thumbnail-name" name="ThumbnailName" value="">
+                <div class="submit-container">
+                    <button id="submit-publish" class="submit-btn submit-hidden" type="submit" name="Send" value="PUBLISH">Publish</button>
+                    <button class="submit-btn" type="submit" name="Send" value="POST">Post</button>
+                    <button class="submit-btn" type="submit" name="Send" value="DELETE">Delete</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
